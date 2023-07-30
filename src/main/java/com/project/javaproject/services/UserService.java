@@ -33,9 +33,24 @@ public class UserService implements IUserService {
         return users;
     }
 
+    public User getUserById(Long id) {
+        User user = entityManager.find(User.class, id);
+        return user;
+    }
+
     public User insertUser(User user) {
         User newUser = entityManager.merge(user);
         return newUser;
     }
     
+    public User updateUser(User user) {
+        User updateUser = entityManager.merge(user);
+        return updateUser;
+    }
+
+    public User deleteUser(Long id) {
+        User user = getUserById(id);
+        entityManager.remove(user);
+        return user;
+    }
 }
