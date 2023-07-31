@@ -48,9 +48,7 @@ public class UserService implements IUserService {
         return updateUser;
     }
 
-    public User deleteUser(Long id) {
-        User user = getUserById(id);
+    public void deleteUser(User user) {
         entityManager.remove(user);
-        return user;
     }
 }

@@ -1,6 +1,8 @@
 package com.project.javaproject.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,8 +32,17 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUser (@PathVariable Long id) {
-        return new ResponseEntity<>(userService.getUserById(id), HttpStatus.OK);
+    public ResponseEntity<Object> getUser (@PathVariable Long id) {
+        User user = userService.getUserById(id);
+        Map<String, Object> res = new HashMap<>();
+        if (user == null) {
+            res.put("success", false);
+            res.put("message", "User not found");
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        res.put("success", true);
+        res.put("data", user);
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     @PostMapping("/")
@@ -45,7 +56,19 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<User> delete(@PathVariable Long id) {
-        return new ResponseEntity<>(userService.deleteUser(id), HttpStatus.OK);
+    public ResponseEntity<Object> delete(@PathVariable Long id) {
+        Map <String, Object> res = new HashMap<>();
+        User isUserExist = userService.getUserById(id);
+
+        if (isUserExist == null) {
+            res.put("success", false);
+            res.put("message", "User with id "+id+" dont exist");
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+
+        userService.deleteUser(isUserExist);
+        res.put("success", true);
+        res.put("data", isUserExist);
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 }
