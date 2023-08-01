@@ -32,7 +32,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getUser (@PathVariable Long id) {
+    public ResponseEntity<Object> getUser(@PathVariable Long id) {
         User user = userService.getUserById(id);
         Map<String, Object> res = new HashMap<>();
         if (user == null) {
@@ -46,8 +46,24 @@ public class UserController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<User> insert(@RequestBody User user) {
-        return new ResponseEntity<>(userService.insertUser(user), HttpStatus.OK);
+    public ResponseEntity<Object> insert(@RequestBody User user) {
+        Map<String, Object> res = new HashMap<>();
+        Map<String, String> errors = user.hasErrors();
+
+        if (errors.size() > 0) {
+            res.put("success", false);
+            res.put("errors", errors);
+
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+
+        if (user.getIsActive() == null) {
+            user.setIsActive(true);
+        }
+
+        res.put("success", true);
+        res.put("created_user", userService.insertUser(user));
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     @PutMapping("/")
@@ -57,12 +73,12 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> delete(@PathVariable Long id) {
-        Map <String, Object> res = new HashMap<>();
+        Map<String, Object> res = new HashMap<>();
         User isUserExist = userService.getUserById(id);
 
         if (isUserExist == null) {
             res.put("success", false);
-            res.put("message", "User with id "+id+" dont exist");
+            res.put("message", "User with id " + id + " dont exist");
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
 
