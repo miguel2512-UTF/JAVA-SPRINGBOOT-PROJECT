@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.project.javaproject.models.User;
 import com.project.javaproject.services.UserService;
+import com.project.javaproject.utils.ValidationException;
 
 @RestController
 @RequestMapping("/user")
@@ -46,23 +47,21 @@ public class UserController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<Object> insert(@RequestBody User user) {
+    public ResponseEntity<Object> insert(@RequestBody User user) throws Exception {
         Map<String, Object> res = new HashMap<>();
-        Map<String, String> errors = user.hasErrors();
-
-        if (errors.size() > 0) {
-            res.put("success", false);
-            res.put("errors", errors);
-
-            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-        }
 
         if (user.getIsActive() == null) {
             user.setIsActive(true);
         }
 
-        res.put("success", true);
-        res.put("created_user", userService.insertUser(user));
+        try {
+            res.put("success", true);
+            res.put("created_user", userService.insertUser(user));
+        } catch (ValidationException e) {
+            res.put("success", false);
+            res.put("errors", e.getErrors());
+        }
+
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 

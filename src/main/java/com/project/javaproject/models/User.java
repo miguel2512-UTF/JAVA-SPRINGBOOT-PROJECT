@@ -1,9 +1,6 @@
 package com.project.javaproject.models;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -46,19 +43,5 @@ public class User implements Serializable {
         this.email = email;
         this.password = password;
         this.isActive = isActive;
-    }
-
-    public Map<String, String> hasErrors() {
-        Map<String, String> errors = new HashMap<>();
-
-        if (this.email == null) {
-            errors.put("email", "email is required");
-        }
-
-        if (this.password == null) {
-            errors.put("password", "password is required");
-        }
-
-        return errors;
     }
 }
