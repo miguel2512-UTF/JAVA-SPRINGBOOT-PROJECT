@@ -54,6 +54,8 @@ public class UserController {
             user.setIsActive(true);
         }
 
+        user.setId(null);
+
         try {
             res.put("success", true);
             res.put("created_user", userService.insertUser(user));
@@ -66,8 +68,38 @@ public class UserController {
     }
 
     @PutMapping("/")
-    public ResponseEntity<User> update(@RequestBody User user) {
-        return new ResponseEntity<>(userService.updateUser(user), HttpStatus.OK);
+    public ResponseEntity<Object> update(@RequestBody User requestUser) {
+        Map<String, Object> res = new HashMap<>();
+
+        if (requestUser.getId() == null) {
+            res.put("success", false);
+            res.put("message", "id is required");
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+
+        User user = userService.getUserById(requestUser.getId());
+        
+        if (user == null) {
+            res.put("success", false);
+            res.put("message", "User not found");
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+
+        if (requestUser.getEmail() != null) {
+            user.setEmail(requestUser.getEmail());
+        }
+
+        if (requestUser.getPassword() != null) {
+            user.setPassword(requestUser.getPassword());
+        }
+
+        if (requestUser.getIsActive() != null) {
+            user.setIsActive(requestUser.getIsActive());
+        }
+
+        res.put("success", true);
+        res.put("updated_user", userService.updateUser(user));
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
