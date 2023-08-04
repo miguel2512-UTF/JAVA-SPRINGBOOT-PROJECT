@@ -3,6 +3,8 @@ package com.project.javaproject.services;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
@@ -84,12 +86,18 @@ public class UserService implements IUserService {
 
     private Map<String, String> checkUserHasErrors(User user) {
         Map<String, String> errors = new HashMap<>();
+        Pattern patternEmail = Pattern.compile("^\\w+([.-_+]?\\w+)*@\\w+([.-]?\\w+)*(\\.\\w{2,10})+$");
+        Matcher isValidEmail = patternEmail.matcher(user.getEmail());
 
-        if (user.getEmail() == null) {
+        if (user.getEmail() == null || user.getEmail().isEmpty()) {
             errors.put("email", "email is required");
         }
 
-        if (user.getPassword() == null) {
+        if (isValidEmail.find() == false) {
+            errors.put("email", "the email entered is invalid");
+        }
+
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
             errors.put("password", "password is required");
         }
 

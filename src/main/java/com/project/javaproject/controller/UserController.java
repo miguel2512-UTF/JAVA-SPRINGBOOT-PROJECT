@@ -62,9 +62,10 @@ public class UserController {
         } catch (ValidationException e) {
             res.put("success", false);
             res.put("errors", e.getErrors());
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
 
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        return new ResponseEntity<>(res, HttpStatus.CREATED);
     }
 
     @PutMapping("/")
@@ -85,11 +86,19 @@ public class UserController {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
 
-        if (requestUser.getEmail() != null) {
+        if (requestUser.getEmail() != null && requestUser.getEmail().isEmpty() == false) {
+            if (requestUser.getEmail().equalsIgnoreCase(user.getEmail()) == false) {
+                if (userService.getUserByEmail(requestUser.getEmail()) != null) {
+                    res.put("success", false);
+                    res.put("message", "Email is already in use");
+                    return new ResponseEntity<>(res, HttpStatus.UNPROCESSABLE_ENTITY);
+                }
+            }
+
             user.setEmail(requestUser.getEmail());
         }
 
-        if (requestUser.getPassword() != null) {
+        if (requestUser.getPassword() != null && requestUser.getPassword().isEmpty() == false) {
             user.setPassword(requestUser.getPassword());
         }
 
