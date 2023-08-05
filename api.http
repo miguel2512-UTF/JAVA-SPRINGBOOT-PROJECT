@@ -1,0 +1,25 @@
+### Get Users
+GET http://localhost:8080/api/user/
+
+
+### Add new user
+POST http://localhost:8080/api/user/
+Content-Type: application/json
+
+{
+  "id": 8,
+  "email": "m1gu3l..w1lch3z@gmail.com",
+  "password": "",
+  "isActive": true
+}
+
+### Edit User
+PUT http://localhost:8080/api/user/
+Content-Type: application/json
+
+{
+  "id": 8,
+  "email": "miguel@gmail.com",
+  "password": "",
+  "isActive": true
+}
