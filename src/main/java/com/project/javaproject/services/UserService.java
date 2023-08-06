@@ -1,5 +1,6 @@
 package com.project.javaproject.services;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.project.javaproject.models.User;
-import com.project.javaproject.utils.ValidationException;
+import com.project.javaproject.utils.ValidationMessages;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -23,13 +24,6 @@ public class UserService implements IUserService {
 
     @PersistenceContext
     private EntityManager entityManager;
-
-    // static List<User> users = new ArrayList<User>();
-
-    // static {
-    //     users.add(new User(Long.valueOf(1), "John@gmail.com", "password", true));
-    //     users.set(0, new User(Long.valueOf(2), "example@gmail.com", "password", false));
-    // }
 
     @SuppressWarnings("all")
     public List<User> getUsers() {
@@ -55,19 +49,9 @@ public class UserService implements IUserService {
         return null;
     }
 
-    public User insertUser(User user) throws ValidationException {
-        Map<String, String> errors = checkUserHasErrors(user);
-        if (errors.size() > 0) {
-            throw new ValidationException(errors);
-        }
-
-        User newUser = entityManager.merge(user);
-        return newUser;
-    }
-    
-    public User updateUser(User user) {
-        User updateUser = entityManager.merge(user);
-        return updateUser;
+    public User save(User user) {
+        User saveUser = entityManager.merge(user);
+        return saveUser;
     }
 
     public void deleteUser(User user) {
@@ -84,25 +68,46 @@ public class UserService implements IUserService {
         return true;
     }
 
-    private Map<String, String> checkUserHasErrors(User user) {
-        Map<String, String> errors = new HashMap<>();
+    public Map<String, Object> checkUserHasErrors(User user) {
+        Map<String, Object> errors = new HashMap<>();
+        List<String> emailErrors = new ArrayList<>();
+        List<String> passwordErrors = new ArrayList<>();
+
         Pattern patternEmail = Pattern.compile("^\\w+([.-_+]?\\w+)*@\\w+([.-]?\\w+)*(\\.\\w{2,10})+$");
         Matcher isValidEmail = patternEmail.matcher(user.getEmail());
 
         if (user.getEmail() == null || user.getEmail().isEmpty()) {
-            errors.put("email", "email is required");
+            emailErrors.add(ValidationMessages.emailRequiredMsg);
+            errors.put("email", emailErrors);
         }
 
         if (isValidEmail.find() == false) {
-            errors.put("email", "the email entered is invalid");
+            emailErrors.add(ValidationMessages.emailIsInvalidMsg);
+            errors.put("email", emailErrors);
         }
 
         if (user.getPassword() == null || user.getPassword().isEmpty()) {
-            errors.put("password", "password is required");
+            passwordErrors.add(ValidationMessages.passwordRequiredMsg);
+            errors.put("password", passwordErrors);
         }
 
-        if (checkEmailAvailable(user.getEmail()) != true) {
-            errors.put("email", "email is already in use");
+        if (user.getId() == null) {
+            if (checkEmailAvailable(user.getEmail()) != true) {
+                emailErrors.add(ValidationMessages.emailNotAvailableMsg);
+                errors.put("email", emailErrors);
+            }
+        } else {
+            User isSameUserEmail = getUserById(user.getId());
+            if (user.getEmail().equals(isSameUserEmail.getEmail()) == false) {
+                if (checkEmailAvailable(user.getEmail()) == false) {
+                    emailErrors.add(ValidationMessages.emailNotAvailableMsg);
+                    errors.put("email", emailErrors);
+                }
+            }
+        }
+
+        if (user.getIsActive() == null) {
+            user.setIsActive(true);
         }
 
         return errors;

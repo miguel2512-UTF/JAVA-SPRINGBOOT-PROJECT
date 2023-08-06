@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.project.javaproject.models.User;
 import com.project.javaproject.services.UserService;
-import com.project.javaproject.utils.ValidationException;
 
 @RestController
 @RequestMapping("/user")
@@ -50,64 +49,52 @@ public class UserController {
     public ResponseEntity<Object> insert(@RequestBody User user) throws Exception {
         Map<String, Object> res = new HashMap<>();
 
-        if (user.getIsActive() == null) {
-            user.setIsActive(true);
-        }
-
         user.setId(null);
+        Map<String, Object> errors = userService.checkUserHasErrors(user);
 
-        try {
-            res.put("success", true);
-            res.put("created_user", userService.insertUser(user));
-        } catch (ValidationException e) {
+        if (errors.size() > 0) {
             res.put("success", false);
-            res.put("errors", e.getErrors());
+            res.put("errors", errors);
+
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
 
+        res.put("success", true);
+        res.put("created_user", userService.save(user));
+
         return new ResponseEntity<>(res, HttpStatus.CREATED);
     }
-
+    
     @PutMapping("/")
     public ResponseEntity<Object> update(@RequestBody User requestUser) {
         Map<String, Object> res = new HashMap<>();
-
+        
         if (requestUser.getId() == null) {
             res.put("success", false);
             res.put("message", "id is required");
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
 
-        User user = userService.getUserById(requestUser.getId());
-        
-        if (user == null) {
+        User isUserFound = userService.getUserById(requestUser.getId());
+
+        if (isUserFound == null) {
             res.put("success", false);
             res.put("message", "User not found");
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
 
-        if (requestUser.getEmail() != null && requestUser.getEmail().isEmpty() == false) {
-            if (requestUser.getEmail().equalsIgnoreCase(user.getEmail()) == false) {
-                if (userService.getUserByEmail(requestUser.getEmail()) != null) {
-                    res.put("success", false);
-                    res.put("message", "Email is already in use");
-                    return new ResponseEntity<>(res, HttpStatus.UNPROCESSABLE_ENTITY);
-                }
-            }
+        Map<String, Object> errors = userService.checkUserHasErrors(requestUser);
 
-            user.setEmail(requestUser.getEmail());
-        }
+        if (errors.size() > 0) {
+            res.put("success", false);
+            res.put("errors", errors);
 
-        if (requestUser.getPassword() != null && requestUser.getPassword().isEmpty() == false) {
-            user.setPassword(requestUser.getPassword());
-        }
-
-        if (requestUser.getIsActive() != null) {
-            user.setIsActive(requestUser.getIsActive());
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
 
         res.put("success", true);
-        res.put("updated_user", userService.updateUser(user));
+        res.put("updated_user", userService.save(requestUser));
+
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 

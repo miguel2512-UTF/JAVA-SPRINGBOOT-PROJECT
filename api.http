@@ -8,7 +8,7 @@ Content-Type: application/json
 
 {
   "id": 8,
-  "email": "m1gu3l..w1lch3z@gmail.com",
+  "email": "test@gmail.com",
   "password": "",
   "isActive": true
 }
@@ -23,3 +23,6 @@ Content-Type: application/json
   "password": "",
   "isActive": true
 }
+
+### Delete User
+DELETE http://localhost:8080/api/user/39
