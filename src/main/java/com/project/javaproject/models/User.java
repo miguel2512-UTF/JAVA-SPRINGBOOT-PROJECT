@@ -41,6 +41,8 @@ public class User implements Serializable {
     private Boolean isActive;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @Getter
+    @Setter
     private List<Loan> loans;
 
     public User() {

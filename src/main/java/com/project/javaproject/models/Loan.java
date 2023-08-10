@@ -1,5 +1,8 @@
 package com.project.javaproject.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -37,6 +40,7 @@ public class Loan {
     private String loanDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonProperty(access = Access.WRITE_ONLY)
     @Getter
     @Setter
     private User user;
@@ -50,5 +54,9 @@ public class Loan {
         this.loanValue = loanValue;
         this.loanDate = loanDate;
         this.user = user;
+    }
+
+    public Long getUserId() {
+        return this.user.getId();
     }
 }

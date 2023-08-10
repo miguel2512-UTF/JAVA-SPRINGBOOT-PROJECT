@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.project.javaproject.models.Loan;
 import com.project.javaproject.services.ILoanService;
+import com.project.javaproject.services.IUserService;
 
 @RestController
 @RequestMapping("/loan")
@@ -25,6 +26,9 @@ public class LoanController {
     @Autowired
     private ILoanService loanService;
 
+    @Autowired
+    private IUserService userService;
+
     @GetMapping("/")
     public List<Loan> getLoans() {
         return loanService.getAll();
@@ -32,8 +36,10 @@ public class LoanController {
 
     @PostMapping("/")
     public ResponseEntity<Map<String, Object>> createLoan(@RequestBody Loan loan) {
-        System.out.println(loan.getDebtorName());
         Map<String, Object> res = new HashMap<>();
+        
+        Long userId = loan.getUser().getId();
+        loan.setUser(userService.getUserById(userId));
         Loan newLoan = loanService.save(loan);
 
         res.put("success", true);
