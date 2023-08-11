@@ -34,6 +34,20 @@ public class LoanController {
         return loanService.getAll();
     }
 
+    @GetMapping("/{idLoan}")
+    public ResponseEntity<Object> getLoan(@PathVariable Long idLoan) {
+        Loan loan = loanService.getLoan(idLoan);
+        Map<String, Object> res = new HashMap<>();
+        if (loan == null) {
+            res.put("success", false);
+            res.put("message", "Loan not found");
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        res.put("success", true);
+        res.put("data", loan);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
     @PostMapping("/")
     public ResponseEntity<Map<String, Object>> createLoan(@RequestBody Loan loan) {
         Map<String, Object> res = new HashMap<>();
@@ -49,8 +63,18 @@ public class LoanController {
     }
 
     @DeleteMapping("/{idLoan}")
-    public String deleteLoan(@PathVariable Long idLoan) {
-        loanService.deleteLoan(idLoan);
-        return "testing";
+    public ResponseEntity<Object> delete(@PathVariable Long idLoan) {
+        Map<String, Object> res = new HashMap<>();
+        Boolean isDeletedLoan = loanService.deleteLoan(idLoan);
+
+        if (isDeletedLoan == false) {
+            res.put("success", false);
+            res.put("message", "Loan not found");
+            return new ResponseEntity<Object>(res, HttpStatus.NOT_FOUND);
+        }
+        
+        res.put("success", true);
+        res.put("message", "Loan deleted successfully");
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 }

@@ -35,7 +35,10 @@ public class LoanService implements ILoanService {
     public Boolean deleteLoan(Long id) {
         String sql = "DELETE FROM Loan WHERE id_loan = :id";
         int success = entityManager.createNativeQuery(sql, Loan.class).setParameter("id", id).executeUpdate();
-        System.out.println("SUCCESS: "+success);
+
+        if (success == 0) {
+            return false;
+        }
 
         return true;
     }
