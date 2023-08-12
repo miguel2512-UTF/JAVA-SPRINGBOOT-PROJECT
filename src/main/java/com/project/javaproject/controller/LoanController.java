@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -60,6 +61,25 @@ public class LoanController {
         res.put("created_loan", newLoan);
 
         return new ResponseEntity<>(res, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{idLoan}")
+    public ResponseEntity<Object> update(@PathVariable Long idLoan, @RequestBody Loan requestLoan) {
+        Map<String, Object> res = new HashMap<>();
+        Loan isLoanFound = loanService.getLoan(idLoan);
+
+        if (isLoanFound == null) {
+            res.put("success", false);
+            res.put("message", "Loan not found");
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+
+        requestLoan.setIdLoan(idLoan);
+
+        res.put("success", true);
+        res.put("updated_loan", loanService.save(requestLoan));
+
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     @DeleteMapping("/{idLoan}")

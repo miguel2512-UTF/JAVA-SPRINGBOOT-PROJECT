@@ -64,24 +64,19 @@ public class UserController {
 
         return new ResponseEntity<>(res, HttpStatus.CREATED);
     }
-    
-    @PutMapping("/")
-    public ResponseEntity<Object> update(@RequestBody User requestUser) {
-        Map<String, Object> res = new HashMap<>();
-        
-        if (requestUser.getId() == null) {
-            res.put("success", false);
-            res.put("message", "id is required");
-            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-        }
 
-        User isUserFound = userService.getUserById(requestUser.getId());
+    @PutMapping("/{id}")
+    public ResponseEntity<Object> update(@PathVariable Long id, @RequestBody User requestUser) {
+        Map<String, Object> res = new HashMap<>();
+        User isUserFound = userService.getUserById(id);
 
         if (isUserFound == null) {
             res.put("success", false);
             res.put("message", "User not found");
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
+
+        requestUser.setId(id);
 
         Map<String, Object> errors = userService.checkUserHasErrors(requestUser);
 
@@ -92,9 +87,15 @@ public class UserController {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
 
-        res.put("success", true);
-        res.put("updated_user", userService.save(requestUser));
+        requestUser.setLoans(isUserFound.getLoans());
 
+        if (userService.hasChanges(requestUser)) {
+            userService.save(requestUser);
+            res.put("updated_user", requestUser);
+        }
+        
+        res.put("success", true);
+        res.put("updated_user", requestUser);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 

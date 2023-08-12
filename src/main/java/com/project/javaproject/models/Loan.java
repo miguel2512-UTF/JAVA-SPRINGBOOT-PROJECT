@@ -57,6 +57,10 @@ public class Loan {
     }
 
     public Long getUserId() {
+        if (this.user == null) {
+            return null;
+        }
+
         return this.user.getId();
     }
 }

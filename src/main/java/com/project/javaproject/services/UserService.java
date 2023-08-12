@@ -40,7 +40,8 @@ public class UserService implements IUserService {
     @SuppressWarnings("all")
     public User getUserByEmail(String email) {
         String query = "SELECT * FROM User WHERE email = :email";
-        List<User> result = entityManager.createNativeQuery(query, User.class).setParameter("email", email).setMaxResults(1).getResultList();
+        List<User> result = entityManager.createNativeQuery(query, User.class).setParameter("email", email)
+                .setMaxResults(1).getResultList();
 
         if (result.size() > 0) {
             return result.get(0);
@@ -58,11 +59,17 @@ public class UserService implements IUserService {
         entityManager.remove(user);
     }
 
-    private Boolean checkEmailAvailable(String email) {
-        User user = getUserByEmail(email);
-        
-        if (user != null) {
+    private Boolean checkEmailIsBusy(User user) {
+        User isEmailFound = getUserByEmail(user.getEmail());
+
+        if (isEmailFound == null) {
             return false;
+        }
+
+        if (user.getId() != null) {
+            if (isEmailFound.getId() == user.getId()) {
+                return false;
+            }
         }
 
         return true;
@@ -74,16 +81,24 @@ public class UserService implements IUserService {
         List<String> passwordErrors = new ArrayList<>();
 
         Pattern patternEmail = Pattern.compile("^\\w+([.-_+]?\\w+)*@\\w+([.-]?\\w+)*(\\.\\w{2,10})+$");
-        Matcher isValidEmail = patternEmail.matcher(user.getEmail());
 
         if (user.getEmail() == null || user.getEmail().isEmpty()) {
             emailErrors.add(ValidationMessages.emailRequiredMsg);
             errors.put("email", emailErrors);
         }
 
-        if (isValidEmail.find() == false) {
-            emailErrors.add(ValidationMessages.emailIsInvalidMsg);
-            errors.put("email", emailErrors);
+        if (user.getEmail() != null) {
+            Matcher isValidEmail = patternEmail.matcher(user.getEmail());
+
+            if (isValidEmail.find() == false) {
+                emailErrors.add(ValidationMessages.emailIsInvalidMsg);
+                errors.put("email", emailErrors);
+            }
+
+            if (checkEmailIsBusy(user)) {
+                emailErrors.add(ValidationMessages.emailNotAvailableMsg);
+                errors.put("email", emailErrors);
+            }
         }
 
         if (user.getPassword() == null || user.getPassword().isEmpty()) {
@@ -91,25 +106,20 @@ public class UserService implements IUserService {
             errors.put("password", passwordErrors);
         }
 
-        if (user.getId() == null) {
-            if (checkEmailAvailable(user.getEmail()) != true) {
-                emailErrors.add(ValidationMessages.emailNotAvailableMsg);
-                errors.put("email", emailErrors);
-            }
-        } else {
-            User isSameUserEmail = getUserById(user.getId());
-            if (user.getEmail().equals(isSameUserEmail.getEmail()) == false) {
-                if (checkEmailAvailable(user.getEmail()) == false) {
-                    emailErrors.add(ValidationMessages.emailNotAvailableMsg);
-                    errors.put("email", emailErrors);
-                }
-            }
-        }
-
         if (user.getIsActive() == null) {
             user.setIsActive(true);
         }
 
         return errors;
+    }
+
+    public Boolean hasChanges(User user) {
+        User userCompare = getUserById(user.getId());
+
+        if (userCompare.getEmail().equals(user.getEmail()) && userCompare.getPassword().equals(user.getPassword()) && userCompare.getIsActive() == user.getIsActive()) {
+            return false;
+        }
+
+        return true;
     }
 }
