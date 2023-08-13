@@ -52,6 +52,13 @@ public class LoanController {
     @PostMapping("/")
     public ResponseEntity<Map<String, Object>> createLoan(@RequestBody Loan loan) {
         Map<String, Object> res = new HashMap<>();
+        Map<String, Object> errors = loanService.checkLoanHasErrors(loan);
+
+        if (errors.size() > 0) {
+            res.put("success", false);
+            res.put("errors", errors);
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
         
         Long userId = loan.getUser().getId();
         loan.setUser(userService.getUserById(userId));
