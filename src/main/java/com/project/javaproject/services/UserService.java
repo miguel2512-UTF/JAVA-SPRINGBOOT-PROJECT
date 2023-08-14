@@ -83,22 +83,22 @@ public class UserService implements IUserService {
         Pattern patternEmail = Pattern.compile("^\\w+([.-_+]?\\w+)*@\\w+([.-]?\\w+)*(\\.\\w{2,10})+$");
 
         if (user.getEmail() == null || user.getEmail().isEmpty()) {
+            user.setEmail("");
+
             emailErrors.add(ValidationMessages.emailRequiredMsg);
             errors.put("email", emailErrors);
         }
 
-        if (user.getEmail() != null) {
-            Matcher isValidEmail = patternEmail.matcher(user.getEmail());
+        Matcher isValidEmail = patternEmail.matcher(user.getEmail());
 
-            if (isValidEmail.find() == false) {
-                emailErrors.add(ValidationMessages.emailIsInvalidMsg);
-                errors.put("email", emailErrors);
-            }
+        if (isValidEmail.find() == false) {
+            emailErrors.add(ValidationMessages.emailIsInvalidMsg);
+            errors.put("email", emailErrors);
+        }
 
-            if (checkEmailIsBusy(user)) {
-                emailErrors.add(ValidationMessages.emailNotAvailableMsg);
-                errors.put("email", emailErrors);
-            }
+        if (checkEmailIsBusy(user)) {
+            emailErrors.add(ValidationMessages.emailNotAvailableMsg);
+            errors.put("email", emailErrors);
         }
 
         if (user.getPassword() == null || user.getPassword().isEmpty()) {
@@ -116,7 +116,8 @@ public class UserService implements IUserService {
     public Boolean hasChanges(User user) {
         User userCompare = getUserById(user.getId());
 
-        if (userCompare.getEmail().equals(user.getEmail()) && userCompare.getPassword().equals(user.getPassword()) && userCompare.getIsActive() == user.getIsActive()) {
+        if (userCompare.getEmail().equals(user.getEmail()) && userCompare.getPassword().equals(user.getPassword())
+                && userCompare.getIsActive() == user.getIsActive()) {
             return false;
         }
 

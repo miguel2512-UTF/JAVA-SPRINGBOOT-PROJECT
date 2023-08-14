@@ -80,6 +80,14 @@ public class LoanController {
             res.put("message", "Loan not found");
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
+        
+        Map<String, Object> errors = loanService.checkLoanHasErrors(requestLoan);
+        if (errors.size() > 0) {
+            res.put("success", false);
+            res.put("errors", errors);
+            
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
 
         requestLoan.setIdLoan(idLoan);
 
