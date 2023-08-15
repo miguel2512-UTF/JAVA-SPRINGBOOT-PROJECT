@@ -8,9 +8,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
+import com.project.javaproject.interfaces.ILoanService;
 import com.project.javaproject.models.Loan;
 
 import jakarta.persistence.EntityManager;
@@ -24,6 +26,9 @@ public class LoanService implements ILoanService {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    @Autowired
+    private UserService userService;
 
     public List<Loan> getAll() {
         String query = "FROM Loan";
@@ -73,6 +78,14 @@ public class LoanService implements ILoanService {
         if (isValidName.find() == false) {
             nameErrors.add("Debtor must be a valid name. Format: Name Lastname(Optional)");
             errors.put("debtorName", nameErrors);
+        }
+
+        if (loan.getUserId() == null) {
+            errors.put("user", "User id must be provided");
+        } else {
+            if (userService.getUserById(loan.getUserId()) == null) {
+                errors.put("user", "User doesn't exist");
+            }
         }
 
         if (loan.getLoanDate() == null || loan.getLoanDate().isEmpty()) {

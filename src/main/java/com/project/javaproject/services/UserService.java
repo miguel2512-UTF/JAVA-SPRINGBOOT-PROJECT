@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.project.javaproject.interfaces.IUserService;
 import com.project.javaproject.models.User;
 import com.project.javaproject.utils.ValidationMessages;
 
