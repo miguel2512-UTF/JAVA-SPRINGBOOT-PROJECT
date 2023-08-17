@@ -41,7 +41,17 @@ public class Loan {
     @Column(nullable = false)
     @Getter
     @Setter
+    private Double debtValue;
+
+    @Column(nullable = false)
+    @Getter
+    @Setter
     private String loanDate;
+
+    @Column(nullable = false)
+    @Getter
+    @Setter
+    private Boolean isPayment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonProperty(access = Access.WRITE_ONLY)
@@ -56,12 +66,13 @@ public class Loan {
 
     public Loan() {}
 
-    public Loan(Long idLoan, String debtorName, Double loanValue, String loanDate,
-            User user) {
+    public Loan(Long idLoan, String debtorName, Double loanValue, Double debtValue, String loanDate, Boolean isPayment, User user) {
         this.idLoan = idLoan;
         this.debtorName = debtorName;
         this.loanValue = loanValue;
+        this.debtValue = debtValue;
         this.loanDate = loanDate;
+        this.isPayment = isPayment;
         this.user = user;
     }
 

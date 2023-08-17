@@ -1,6 +1,5 @@
 package com.project.javaproject.services;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.project.javaproject.interfaces.ILoanService;
 import com.project.javaproject.models.Loan;
+import com.project.javaproject.utils.Validation;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -64,7 +64,6 @@ public class LoanService implements ILoanService {
         List<String> dateErrors = new ArrayList<>();
         List<String> nameErrors = new ArrayList<>();
 
-        Pattern patternDate = Pattern.compile("^([0-9]{4})-([0-9]{2})-([0-9]{2})$");
         Pattern patternName = Pattern.compile("^([a-zA-Z]{2,10})(\s[a-zA-Z]{1,15})?$");
 
         if (loan.getDebtorName() == null || loan.getDebtorName().isEmpty()) {
@@ -88,41 +87,14 @@ public class LoanService implements ILoanService {
             }
         }
 
-        if (loan.getLoanDate() == null || loan.getLoanDate().isEmpty()) {
+        if (loan.getLoanDate() == null) {
             loan.setLoanDate("");
-
-            dateErrors.add("Loan date is required");
-            errors.put("loanDate", dateErrors);
         }
 
-        Matcher isValidDate = patternDate.matcher(loan.getLoanDate());
-        if (isValidDate.find() == false) {
-            dateErrors.add("Enter a valid date. Format: YYYY-MM-DD");
-            errors.put("loanDate", dateErrors);
+        dateErrors = Validation.checkIsDate(loan.getLoanDate());
 
-            return errors;
-        }
-
-        int year = Integer.parseInt(loan.getLoanDate().split("-")[0]);
-        int month = Integer.parseInt(loan.getLoanDate().split("-")[1]);
-        int day = Integer.parseInt(loan.getLoanDate().split("-")[2]);
-
-        int minimumYear = Integer.parseInt(LocalDate.now().minusYears(1).toString().split("-")[0]);
-        int currentYear = Integer.parseInt(LocalDate.now().toString().split("-")[0]);
-
-        if (year < minimumYear || year > currentYear) {
-            dateErrors.add(String.format("Year must be between %1$d and %2$d", minimumYear, currentYear));
-            errors.put("loanDate", dateErrors);
-        }
-
-        if (month == 0 || month > 12) {
-            dateErrors.add("Month must be between 1 and 12");
-            errors.put("loanDate", dateErrors);
-        }
-
-        if (day == 0 || day > 31) {
-            dateErrors.add("Day must be between 1 and 31");
-            errors.put("loanDate", dateErrors);
+        if (dateErrors.size() > 0) {
+            errors.put("date", dateErrors);
         }
 
         return errors;

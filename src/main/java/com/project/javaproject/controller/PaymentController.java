@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.project.javaproject.interfaces.ILoanService;
 import com.project.javaproject.interfaces.IPaymentService;
+import com.project.javaproject.models.Loan;
 import com.project.javaproject.models.Payment;
 
 @RestController
@@ -51,6 +52,8 @@ public class PaymentController {
 
     @PostMapping("/")
     public ResponseEntity<Map<String, Object>> createPayment(@RequestBody Payment payment) {
+        payment.setId(null);
+
         Map<String, Object> res = new HashMap<>();
         Map<String, Object> errors = paymentService.checkPaymentHasErrors(payment);
 
@@ -61,9 +64,13 @@ public class PaymentController {
         }
         
         Long loanId = payment.getLoanId();
-        payment.setId(null);
         payment.setLoan(loanService.getLoan(loanId));
         Payment newPayment = paymentService.save(payment);
+
+        Loan loan = newPayment.getLoan();
+        Double debtValue = loan.getDebtValue() - newPayment.getValue();
+        loan.setDebtValue(debtValue);
+        loanService.save(loan);
 
         res.put("success", true);
         res.put("created_payment", newPayment);
@@ -91,6 +98,7 @@ public class PaymentController {
         }
 
         requestPayment.setId(id);
+        requestPayment.setValue(isPaymentFound.getValue());
 
         res.put("success", true);
         res.put("updated_payment", paymentService.save(requestPayment));
@@ -101,6 +109,7 @@ public class PaymentController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> delete(@PathVariable Long id) {
         Map<String, Object> res = new HashMap<>();
+        Payment payment = paymentService.getPayment(id);
         Boolean isDeletedPayment = paymentService.deletePayment(id);
 
         if (isDeletedPayment == false) {
@@ -108,6 +117,11 @@ public class PaymentController {
             res.put("message", "Payment not found");
             return new ResponseEntity<Object>(res, HttpStatus.NOT_FOUND);
         }
+
+        Loan loan = loanService.getLoan(payment.getLoanId());
+        Double debtValue = loan.getDebtValue() + payment.getValue();
+        loan.setDebtValue(debtValue);
+        loanService.save(loan);
         
         res.put("success", true);
         res.put("message", "Payment deleted successfully");

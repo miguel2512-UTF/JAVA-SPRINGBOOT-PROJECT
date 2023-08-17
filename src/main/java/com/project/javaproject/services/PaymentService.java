@@ -13,6 +13,7 @@ import com.project.javaproject.interfaces.ILoanService;
 import com.project.javaproject.interfaces.IPaymentService;
 import com.project.javaproject.models.Loan;
 import com.project.javaproject.models.Payment;
+import com.project.javaproject.utils.Validation;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -54,12 +55,35 @@ public class PaymentService implements IPaymentService {
 
     public Map<String, Object> checkPaymentHasErrors(Payment payment) {
         Map<String, Object> errors = new HashMap<>();
+        
+        if (payment.getDate() == null) {
+            payment.setDate("");
+        }
+
+        List<String> dateErrors = Validation.checkIsDate(payment.getDate());
+
+        if (dateErrors.size() > 0) {
+            errors.put("date", dateErrors);
+        }
+
+        if (payment.getValue() == null || payment.getValue() == 0) {
+            errors.put("value", "Value of payment is required");
+        }
 
         if (payment.getLoanId() == null) {
             errors.put("loan", "Loan id must be provided");
-        } else {
-            if (loanService.getLoan(payment.getLoanId()) == null) {
-                errors.put("loan", "Loan doesn't exist");
+            return errors;
+        }
+
+        Loan isLoanFound = loanService.getLoan(payment.getLoanId());
+        if (isLoanFound == null) {
+            errors.put("loan", "Loan doesn't exist");
+            return errors;
+        }
+
+        if (payment.getId() == null) {
+            if (payment.getValue() > isLoanFound.getDebtValue()) {
+                errors.put("value", "Value of payment cannot be grater than the value of the debt");
             }
         }
 

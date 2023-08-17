@@ -61,7 +61,9 @@ public class LoanController {
         }
         
         Long userId = loan.getUser().getId();
-        loan.setIdLoan(null);;
+        loan.setIdLoan(null);
+        loan.setDebtValue(loan.getLoanValue());
+        loan.setIsPayment(false);
         loan.setUser(userService.getUserById(userId));
         Loan newLoan = loanService.save(loan);
 
@@ -91,6 +93,8 @@ public class LoanController {
         }
 
         requestLoan.setIdLoan(idLoan);
+        requestLoan.setDebtValue(isLoanFound.getDebtValue());
+        requestLoan.setIsPayment(isLoanFound.getIsPayment());
 
         res.put("success", true);
         res.put("updated_loan", loanService.save(requestLoan));
