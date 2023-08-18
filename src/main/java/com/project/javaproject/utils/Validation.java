@@ -44,4 +44,12 @@ public class Validation {
 
         return dateErrors;
     }
+
+    public static LocalDate parseToLocalDate(String date) {
+        int year = Integer.parseInt(date.split("-")[0]);
+        int month = Integer.parseInt(date.split("-")[1]);
+        int day = Integer.parseInt(date.split("-")[2]);
+
+        return LocalDate.of(year, month, day);
+    }
 }

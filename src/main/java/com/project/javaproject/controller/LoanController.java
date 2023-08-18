@@ -95,6 +95,7 @@ public class LoanController {
         requestLoan.setIdLoan(idLoan);
         requestLoan.setDebtValue(isLoanFound.getDebtValue());
         requestLoan.setIsPayment(isLoanFound.getIsPayment());
+        requestLoan.setPayments(isLoanFound.getPayments());
 
         res.put("success", true);
         res.put("updated_loan", loanService.save(requestLoan));

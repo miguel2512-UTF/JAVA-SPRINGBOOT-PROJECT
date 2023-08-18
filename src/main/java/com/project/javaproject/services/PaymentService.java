@@ -1,5 +1,6 @@
 package com.project.javaproject.services;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +82,15 @@ public class PaymentService implements IPaymentService {
             return errors;
         }
 
+        if (payment.getDate().isEmpty() == false) {
+            LocalDate datePayment = Validation.parseToLocalDate(payment.getDate());
+            LocalDate dateLoan = Validation.parseToLocalDate(isLoanFound.getLoanDate());
+            if (datePayment.isBefore(dateLoan)) {
+                dateErrors.add("Payment date must be after the loan date");
+                errors.put("date", dateErrors);
+            }
+        }
+   
         if (payment.getId() == null) {
             if (payment.getValue() > isLoanFound.getDebtValue()) {
                 errors.put("value", "Value of payment cannot be grater than the value of the debt");
