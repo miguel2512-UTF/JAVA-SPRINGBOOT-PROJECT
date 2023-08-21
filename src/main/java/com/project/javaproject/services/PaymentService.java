@@ -82,7 +82,7 @@ public class PaymentService implements IPaymentService {
             return errors;
         }
 
-        if (payment.getDate().isEmpty() == false) {
+        if (dateErrors.size() == 0) {
             LocalDate datePayment = Validation.parseToLocalDate(payment.getDate());
             LocalDate dateLoan = Validation.parseToLocalDate(isLoanFound.getLoanDate());
             if (datePayment.isBefore(dateLoan)) {
@@ -92,6 +92,11 @@ public class PaymentService implements IPaymentService {
         }
    
         if (payment.getId() == null) {
+            if (isLoanFound.getIsPayment()) {
+                errors.put("loan", "The loan is already paid");
+                return errors;    
+            }
+
             if (payment.getValue() > isLoanFound.getDebtValue()) {
                 errors.put("value", "Value of payment cannot be grater than the value of the debt");
             }

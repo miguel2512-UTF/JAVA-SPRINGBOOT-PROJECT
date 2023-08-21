@@ -1,5 +1,6 @@
 package com.project.javaproject.controller;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +55,10 @@ public class PaymentController {
     public ResponseEntity<Map<String, Object>> createPayment(@RequestBody Payment payment) {
         payment.setId(null);
 
+        if (payment.getDate() == null || payment.getDate().isEmpty()) {
+            payment.setDate(LocalDate.now().toString());
+        }
+
         Map<String, Object> res = new HashMap<>();
         Map<String, Object> errors = paymentService.checkPaymentHasErrors(payment);
 
@@ -70,6 +75,9 @@ public class PaymentController {
         Loan loan = newPayment.getLoan();
         Double debtValue = loan.getDebtValue() - newPayment.getValue();
         loan.setDebtValue(debtValue);
+        if (loan.getDebtValue() == 0) {
+            loan.setIsPayment(true);
+        }
         loanService.save(loan);
 
         res.put("success", true);
@@ -121,6 +129,7 @@ public class PaymentController {
         Loan loan = loanService.getLoan(payment.getLoanId());
         Double debtValue = loan.getDebtValue() + payment.getValue();
         loan.setDebtValue(debtValue);
+        loan.setIsPayment(false);
         loanService.save(loan);
         
         res.put("success", true);
