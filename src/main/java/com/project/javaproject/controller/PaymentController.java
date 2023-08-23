@@ -107,6 +107,7 @@ public class PaymentController {
 
         requestPayment.setId(id);
         requestPayment.setValue(isPaymentFound.getValue());
+        requestPayment.setLoan(isPaymentFound.getLoan());
 
         res.put("success", true);
         res.put("updated_payment", paymentService.save(requestPayment));

@@ -93,6 +93,7 @@ public class LoanController {
         }
 
         requestLoan.setIdLoan(idLoan);
+        requestLoan.setLoanValue(isLoanFound.getLoanValue());
         requestLoan.setDebtValue(isLoanFound.getDebtValue());
         requestLoan.setIsPayment(isLoanFound.getIsPayment());
         requestLoan.setPayments(isLoanFound.getPayments());
