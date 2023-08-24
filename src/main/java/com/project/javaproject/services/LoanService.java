@@ -97,6 +97,10 @@ public class LoanService implements ILoanService {
             errors.put("date", dateErrors);
         }
 
+        if (loan.getLoanValue() == null || loan.getLoanValue() == 0) {
+            errors.put("value", "Loan value is required");
+        }
+
         return errors;
     }
 }

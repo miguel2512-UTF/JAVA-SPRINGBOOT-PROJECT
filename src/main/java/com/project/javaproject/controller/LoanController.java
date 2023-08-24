@@ -93,8 +93,19 @@ public class LoanController {
         }
 
         requestLoan.setIdLoan(idLoan);
-        requestLoan.setLoanValue(isLoanFound.getLoanValue());
-        requestLoan.setDebtValue(isLoanFound.getDebtValue());
+
+        if (isLoanFound.getLoanValue().equals(requestLoan.getLoanValue()) == false) {
+            Double debtValue = isLoanFound.getDebtValue() + (requestLoan.getLoanValue() - isLoanFound.getLoanValue());
+            if (debtValue >= 0) {
+                requestLoan.setDebtValue(debtValue);
+            } else {
+                requestLoan.setLoanValue(isLoanFound.getLoanValue());
+                requestLoan.setDebtValue(isLoanFound.getDebtValue());
+            }
+        } else {
+            requestLoan.setDebtValue(isLoanFound.getDebtValue());
+        }
+        
         requestLoan.setIsPayment(isLoanFound.getIsPayment());
         requestLoan.setPayments(isLoanFound.getPayments());
 
