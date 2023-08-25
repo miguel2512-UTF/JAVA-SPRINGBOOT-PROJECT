@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,15 +52,14 @@ public class LoanController {
 
     @PostMapping("/")
     public ResponseEntity<Map<String, Object>> createLoan(@RequestBody Loan loan) {
-        Map<String, Object> res = new HashMap<>();
+        Map<String, Object> data = new HashMap<>();
         Map<String, Object> errors = loanService.checkLoanHasErrors(loan);
 
         if (errors.size() > 0) {
-            res.put("success", false);
-            res.put("errors", errors);
-            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+            data.put("errors", errors);
+            return APIResponse(false, data, HttpStatus.BAD_REQUEST);
         }
-        
+
         Long userId = loan.getUser().getId();
         loan.setIdLoan(null);
         loan.setDebtValue(loan.getLoanValue());
@@ -67,52 +67,44 @@ public class LoanController {
         loan.setUser(userService.getUserById(userId));
         Loan newLoan = loanService.save(loan);
 
-        res.put("success", true);
-        res.put("created_loan", newLoan);
-
-        return new ResponseEntity<>(res, HttpStatus.CREATED);
+        data.put("created_loan", newLoan);
+        return APIResponse(true, data, HttpStatus.CREATED);
     }
 
     @PutMapping("/{idLoan}")
-    public ResponseEntity<Object> update(@PathVariable Long idLoan, @RequestBody Loan requestLoan) {
-        Map<String, Object> res = new HashMap<>();
+    public ResponseEntity<Map<String, Object>> update(@PathVariable Long idLoan, @RequestBody Loan requestLoan) {
+        Map<String, Object> data = new HashMap<>();
         Loan isLoanFound = loanService.getLoan(idLoan);
 
         if (isLoanFound == null) {
-            res.put("success", false);
-            res.put("message", "Loan not found");
-            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+            data.put("message", "Loan not found");
+            return APIResponse(false, data, HttpStatus.NOT_FOUND);
         }
         
         Map<String, Object> errors = loanService.checkLoanHasErrors(requestLoan);
         if (errors.size() > 0) {
-            res.put("success", false);
-            res.put("errors", errors);
-            
-            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+            data.put("errors", errors);
+            return APIResponse(false, data, HttpStatus.BAD_REQUEST);
         }
 
         requestLoan.setIdLoan(idLoan);
 
-        if (isLoanFound.getLoanValue().equals(requestLoan.getLoanValue()) == false) {
-            Double debtValue = isLoanFound.getDebtValue() + (requestLoan.getLoanValue() - isLoanFound.getLoanValue());
-            if (debtValue >= 0) {
-                requestLoan.setDebtValue(debtValue);
-            } else {
-                requestLoan.setLoanValue(isLoanFound.getLoanValue());
-                requestLoan.setDebtValue(isLoanFound.getDebtValue());
-            }
+        Double debtValue = isLoanFound.getDebtValue() + (requestLoan.getLoanValue() - isLoanFound.getLoanValue());
+        if (debtValue >= 0) {
+            requestLoan.setDebtValue(debtValue);
         } else {
-            requestLoan.setDebtValue(isLoanFound.getDebtValue());
+            errors.put("value", "The value of the loan cannot be less than the values of the payments");
+            data.put("errors", errors);
+            
+            return APIResponse(false, data, HttpStatus.BAD_REQUEST);
         }
         
         requestLoan.setIsPayment(isLoanFound.getIsPayment());
         requestLoan.setPayments(isLoanFound.getPayments());
 
-        res.put("success", true);
-        res.put("updated_loan", loanService.save(requestLoan));
+        data.put("updated_loan", loanService.save(requestLoan));
 
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        return APIResponse(true, data, HttpStatus.OK);
     }
 
     @DeleteMapping("/{idLoan}")
@@ -125,9 +117,16 @@ public class LoanController {
             res.put("message", "Loan not found");
             return new ResponseEntity<Object>(res, HttpStatus.NOT_FOUND);
         }
-        
+
         res.put("success", true);
         res.put("message", "Loan deleted successfully");
         return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
+    private ResponseEntity<Map<String, Object>> APIResponse(Boolean success, Object data, HttpStatusCode status) {
+        Map<String, Object> res = new HashMap<>();
+        res.put("success", success);
+        res.put("data", data);
+        return new ResponseEntity<>(res, status);
     }
 }
