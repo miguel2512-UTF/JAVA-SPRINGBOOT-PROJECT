@@ -98,8 +98,9 @@ public class LoanController {
             
             return APIResponse(false, data, HttpStatus.BAD_REQUEST);
         }
-        
-        requestLoan.setIsPayment(isLoanFound.getIsPayment());
+
+        changePaymentState(requestLoan);
+
         requestLoan.setPayments(isLoanFound.getPayments());
 
         data.put("updated_loan", loanService.save(requestLoan));
@@ -128,5 +129,13 @@ public class LoanController {
         res.put("success", success);
         res.put("data", data);
         return new ResponseEntity<>(res, status);
+    }
+
+    private void changePaymentState(Loan loan) {
+        if (loan.getDebtValue() == 0) {
+            loan.setIsPayment(true);
+        } else {
+            loan.setIsPayment(false);
+        }
     }
 }
