@@ -1,6 +1,5 @@
 package com.project.javaproject.controller;
 
-import java.util.Base64;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,25 +37,13 @@ public class LoginController {
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 900000))
                 .compact();
-
-        System.out.println(decode(token.split("\\.")[1]));
-        System.out.println(validateToken(token));
         
         return new ResponseEntity<>(token, HttpStatus.OK);
     }
 
-    private static String decode(String encodedString) {
-        return new String(Base64.getUrlDecoder().decode(encodedString));
-    }
-
-    private static Boolean validateToken(String token) {
-        try {
-            Jwts.parser().setSigningKey(KEY).parseClaimsJws(token);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
+    // private static String decode(String encodedString) {
+    //     return new String(Base64.getUrlDecoder().decode(encodedString));
+    // }
 
     // private static Claims getClaimsFromToken(String token) {
     //     return Jwts.parser().setSigningKey(KEY).parseClaimsJws(token).getBody();

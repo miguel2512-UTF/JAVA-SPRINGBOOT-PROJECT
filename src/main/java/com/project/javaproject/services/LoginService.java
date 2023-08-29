@@ -1,13 +1,23 @@
 package com.project.javaproject.services;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.project.javaproject.interfaces.IUserService;
 import com.project.javaproject.models.User;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 @Service
 public class LoginService {
+
+    public static final String KEY = "SECRET_KEY";
 
     @Autowired
     private IUserService userService;
@@ -23,5 +33,32 @@ public class LoginService {
         }
 
         return false;
+    }
+
+    public String validateToken(String token) {
+        try {
+            Jwts.parser().setSigningKey(KEY).parseClaimsJws(token);
+            return null;
+        } catch (ExpiredJwtException e) {
+            return "The token has expired";
+        } catch (Exception e) {
+            return "The token is invalid";
+        }
+    }
+
+    public void isAuthenticated(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String token = request.getHeader("authorization").split(" ")[1];
+        String tokenError = validateToken(token);
+
+        System.out.println(tokenError);
+
+        if (tokenError != null) {
+            PrintWriter out = response.getWriter();
+            response.setStatus(403);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            out.println(tokenError);
+            out.close();
+        }
     }
 }
