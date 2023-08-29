@@ -61,4 +61,25 @@ public class LoginService {
             out.close();
         }
     }
+
+    public Boolean isAuthenticated(HttpServletRequest request) {
+        String token = request.getHeader("authorization").split(" ")[1];
+        String tokenError = validateToken(token);
+
+        if (tokenError != null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public String getToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("authorization");
+
+        if (authHeader == null) {
+            return null;
+        }
+
+        return authHeader;
+    }
 }
