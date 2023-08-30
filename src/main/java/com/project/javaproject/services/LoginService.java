@@ -74,12 +74,6 @@ public class LoginService {
     }
 
     public String getToken(HttpServletRequest request) {
-        String authHeader = request.getHeader("authorization");
-
-        if (authHeader == null) {
-            return null;
-        }
-
-        return authHeader;
+        return request.getHeader("authorization");
     }
 }
