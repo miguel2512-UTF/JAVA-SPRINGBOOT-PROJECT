@@ -1,5 +1,6 @@
 package com.project.javaproject.security;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.springframework.stereotype.Component;
@@ -22,28 +23,28 @@ public class AuthInterceptor implements HandlerInterceptor {
 		String token = loginService.getToken(request);
 
 		if (token == null) {
-			PrintWriter out = response.getWriter();
-			response.setStatus(403);
-			out.println("Missing bearer token");
+			setNotAuthenticatedMessage(response, "Missing bearer token");
 			return false;
 		}
 
 		if (!token.startsWith("Bearer ")) {
-			PrintWriter out = response.getWriter();
-			response.setStatus(403);
-			out.println("The token must be provide like: Bearer {token}");
+			setNotAuthenticatedMessage(response, "The token must be provide like: Bearer {token}");
 			return false;
 		}
 
 		String tokenError = loginService.validateToken(token.split(" ")[1]);
 
 		if (tokenError != null) {
-			PrintWriter out = response.getWriter();
-			response.setStatus(403);
-			out.println(tokenError);
+			setNotAuthenticatedMessage(response, tokenError);
 			return false;
 		}
 
 		return true;
+	}
+
+	private void setNotAuthenticatedMessage(HttpServletResponse response, String message) throws IOException {
+		PrintWriter out = response.getWriter();
+		response.setStatus(403);
+		out.println(message);
 	}
 }
