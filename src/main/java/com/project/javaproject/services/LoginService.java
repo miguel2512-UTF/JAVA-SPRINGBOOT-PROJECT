@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.project.javaproject.interfaces.IUserService;
 import com.project.javaproject.models.User;
+import com.project.javaproject.security.PasswordEncoder;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -28,7 +29,14 @@ public class LoginService {
             return false;
         }
 
-        if (user.getPassword().equals(isUserFound.getPassword())) {
+        boolean passwordMatch;
+        try {
+            passwordMatch = PasswordEncoder.match(user.getPassword(), isUserFound.getPassword());
+        } catch(Exception e) {
+            passwordMatch = false;
+        }
+
+        if (passwordMatch) {
             return true;
         }
 

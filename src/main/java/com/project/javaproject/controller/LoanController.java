@@ -1,13 +1,10 @@
 package com.project.javaproject.controller;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.project.javaproject.interfaces.ILoanService;
 import com.project.javaproject.interfaces.IUserService;
 import com.project.javaproject.models.Loan;
+import com.project.javaproject.utils.ApiResponse;
 
 @RestController
 @RequestMapping("/loan")
@@ -32,32 +30,33 @@ public class LoanController {
     private IUserService userService;
 
     @GetMapping("/")
-    public List<Loan> getLoans() {
-        return loanService.getAll();
+    public ApiResponse getLoans() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("data", loanService.getAll());
+        return ApiResponse.response(true, data, HttpStatus.OK);
     }
 
     @GetMapping("/{idLoan}")
-    public ResponseEntity<Object> getLoan(@PathVariable Long idLoan) {
+    public ApiResponse getLoan(@PathVariable Long idLoan) {
         Loan loan = loanService.getLoan(idLoan);
-        Map<String, Object> res = new HashMap<>();
+        Map<String, Object> data = new HashMap<>();
         if (loan == null) {
-            res.put("success", false);
-            res.put("message", "Loan not found");
-            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+            data.put("message", "Loan not found");
+            return ApiResponse.response(false, data, HttpStatus.NOT_FOUND);
         }
-        res.put("success", true);
-        res.put("data", loan);
-        return new ResponseEntity<>(res, HttpStatus.OK);
+
+        data.put("data", loan);
+        return ApiResponse.response(true, data, HttpStatus.OK);
     }
 
     @PostMapping("/")
-    public ResponseEntity<Map<String, Object>> createLoan(@RequestBody Loan loan) {
+    public ApiResponse createLoan(@RequestBody Loan loan) {
         Map<String, Object> data = new HashMap<>();
         Map<String, Object> errors = loanService.checkLoanHasErrors(loan);
 
         if (errors.size() > 0) {
             data.put("errors", errors);
-            return APIResponse(false, data, HttpStatus.BAD_REQUEST);
+            return ApiResponse.response(false, data, HttpStatus.BAD_REQUEST);
         }
 
         Long userId = loan.getUser().getId();
@@ -68,23 +67,23 @@ public class LoanController {
         Loan newLoan = loanService.save(loan);
 
         data.put("created_loan", newLoan);
-        return APIResponse(true, data, HttpStatus.CREATED);
+        return ApiResponse.response(true, data, HttpStatus.CREATED);
     }
 
     @PutMapping("/{idLoan}")
-    public ResponseEntity<Map<String, Object>> update(@PathVariable Long idLoan, @RequestBody Loan requestLoan) {
+    public ApiResponse update(@PathVariable Long idLoan, @RequestBody Loan requestLoan) {
         Map<String, Object> data = new HashMap<>();
         Loan isLoanFound = loanService.getLoan(idLoan);
 
         if (isLoanFound == null) {
             data.put("message", "Loan not found");
-            return APIResponse(false, data, HttpStatus.NOT_FOUND);
+            return ApiResponse.response(false, data, HttpStatus.NOT_FOUND);
         }
         
         Map<String, Object> errors = loanService.checkLoanHasErrors(requestLoan);
         if (errors.size() > 0) {
             data.put("errors", errors);
-            return APIResponse(false, data, HttpStatus.BAD_REQUEST);
+            return ApiResponse.response(false, data, HttpStatus.BAD_REQUEST);
         }
 
         requestLoan.setIdLoan(idLoan);
@@ -96,7 +95,7 @@ public class LoanController {
             errors.put("value", "The value of the loan cannot be less than the values of the payments");
             data.put("errors", errors);
             
-            return APIResponse(false, data, HttpStatus.BAD_REQUEST);
+            return ApiResponse.response(false, data, HttpStatus.BAD_REQUEST);
         }
 
         changePaymentState(requestLoan);
@@ -105,30 +104,21 @@ public class LoanController {
 
         data.put("updated_loan", loanService.save(requestLoan));
 
-        return APIResponse(true, data, HttpStatus.OK);
+        return ApiResponse.response(true, data, HttpStatus.OK);
     }
 
     @DeleteMapping("/{idLoan}")
-    public ResponseEntity<Object> delete(@PathVariable Long idLoan) {
-        Map<String, Object> res = new HashMap<>();
+    public ApiResponse delete(@PathVariable Long idLoan) {
+        Map<String, Object> data = new HashMap<>();
         Boolean isDeletedLoan = loanService.deleteLoan(idLoan);
 
         if (isDeletedLoan == false) {
-            res.put("success", false);
-            res.put("message", "Loan not found");
-            return new ResponseEntity<Object>(res, HttpStatus.NOT_FOUND);
+            data.put("message", "Loan not found");
+            return ApiResponse.response(false, data, HttpStatus.NOT_FOUND);
         }
 
-        res.put("success", true);
-        res.put("message", "Loan deleted successfully");
-        return new ResponseEntity<>(res, HttpStatus.OK);
-    }
-
-    private ResponseEntity<Map<String, Object>> APIResponse(Boolean success, Object data, HttpStatusCode status) {
-        Map<String, Object> res = new HashMap<>();
-        res.put("success", success);
-        res.put("data", data);
-        return new ResponseEntity<>(res, status);
+        data.put("message", "Loan deleted successfully");
+        return ApiResponse.response(true, data, HttpStatus.OK);
     }
 
     private void changePaymentState(Loan loan) {

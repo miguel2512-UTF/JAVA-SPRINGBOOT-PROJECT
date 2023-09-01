@@ -2,12 +2,10 @@ package com.project.javaproject.controller;
 
 import java.time.LocalDate;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +19,7 @@ import com.project.javaproject.interfaces.ILoanService;
 import com.project.javaproject.interfaces.IPaymentService;
 import com.project.javaproject.models.Loan;
 import com.project.javaproject.models.Payment;
+import com.project.javaproject.utils.ApiResponse;
 
 @RestController
 @RequestMapping("/loan/payment")
@@ -33,39 +32,38 @@ public class PaymentController {
     private ILoanService loanService;
 
     @GetMapping("/")
-    public List<Payment> list() {
-        return paymentService.getAll();
+    public ApiResponse list() {
+        Map<String, Object> body = new HashMap<>();
+        body.put("data", paymentService.getAll());
+        return ApiResponse.response(true, body, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> getPayment(@PathVariable Long id) {
+    public ApiResponse getPayment(@PathVariable Long id) {
         Payment payment = paymentService.getPayment(id);
-        Map<String, Object> res = new HashMap<>();
+        Map<String, Object> body = new HashMap<>();
         if (payment == null) {
-            res.put("success", false);
-            res.put("message", "Payment not found");
-            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+            body.put("message", "Payment not found");
+            return ApiResponse.response(false, body, HttpStatus.NOT_FOUND);
         }
-        res.put("success", true);
-        res.put("data", payment);
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        body.put("data", payment);
+        return ApiResponse.response(true, body, HttpStatus.OK);
     }
 
     @PostMapping("/")
-    public ResponseEntity<Map<String, Object>> createPayment(@RequestBody Payment payment) {
+    public ApiResponse createPayment(@RequestBody Payment payment) {
         payment.setId(null);
 
         if (payment.getDate() == null || payment.getDate().isEmpty()) {
             payment.setDate(LocalDate.now().toString());
         }
 
-        Map<String, Object> res = new HashMap<>();
+        Map<String, Object> body = new HashMap<>();
         Map<String, Object> errors = paymentService.checkPaymentHasErrors(payment);
 
         if (errors.size() > 0) {
-            res.put("success", false);
-            res.put("errors", errors);
-            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+            body.put("errors", errors);
+            return ApiResponse.response(false, body, HttpStatus.BAD_REQUEST);
         }
         
         Long loanId = payment.getLoanId();
@@ -80,51 +78,46 @@ public class PaymentController {
         }
         loanService.save(loan);
 
-        res.put("success", true);
-        res.put("created_payment", newPayment);
+        body.put("created_payment", newPayment);
 
-        return new ResponseEntity<>(res, HttpStatus.CREATED);
+        return ApiResponse.response(true, body, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Object> update(@PathVariable Long id, @RequestBody Payment requestPayment) {
-        Map<String, Object> res = new HashMap<>();
+    public ApiResponse update(@PathVariable Long id, @RequestBody Payment requestPayment) {
+        Map<String, Object> body = new HashMap<>();
         Payment isPaymentFound = paymentService.getPayment(id);
 
         if (isPaymentFound == null) {
-            res.put("success", false);
-            res.put("message", "Payment not found");
-            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+            body.put("message", "Payment not found");
+            return ApiResponse.response(false, body, HttpStatus.NOT_FOUND);
         }
         
         Map<String, Object> errors = paymentService.checkPaymentHasErrors(requestPayment);
         if (errors.size() > 0) {
-            res.put("success", false);
-            res.put("errors", errors);
+            body.put("errors", errors);
             
-            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+            return ApiResponse.response(false, body, HttpStatus.BAD_REQUEST);
         }
 
         requestPayment.setId(id);
         requestPayment.setValue(isPaymentFound.getValue());
         requestPayment.setLoan(isPaymentFound.getLoan());
 
-        res.put("success", true);
-        res.put("updated_payment", paymentService.save(requestPayment));
+        body.put("updated_payment", paymentService.save(requestPayment));
 
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        return ApiResponse.response(true, body, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> delete(@PathVariable Long id) {
-        Map<String, Object> res = new HashMap<>();
+    public ApiResponse delete(@PathVariable Long id) {
+        Map<String, Object> body = new HashMap<>();
         Payment payment = paymentService.getPayment(id);
         Boolean isDeletedPayment = paymentService.deletePayment(id);
 
         if (isDeletedPayment == false) {
-            res.put("success", false);
-            res.put("message", "Payment not found");
-            return new ResponseEntity<Object>(res, HttpStatus.NOT_FOUND);
+            body.put("message", "Payment not found");
+            return ApiResponse.response(false, body, HttpStatus.NOT_FOUND);
         }
 
         Loan loan = loanService.getLoan(payment.getLoanId());
@@ -133,8 +126,7 @@ public class PaymentController {
         loan.setIsPayment(false);
         loanService.save(loan);
         
-        res.put("success", true);
-        res.put("message", "Payment deleted successfully");
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        body.put("message", "Payment deleted successfully");
+        return ApiResponse.response(true, body, HttpStatus.OK);
     }
 }
