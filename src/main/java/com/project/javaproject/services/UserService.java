@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.project.javaproject.interfaces.IUserService;
 import com.project.javaproject.models.User;
+import static com.project.javaproject.security.PasswordEncoder.encode;
+import static com.project.javaproject.security.PasswordEncoder.match;
 import com.project.javaproject.utils.ValidationMessages;
 
 import jakarta.persistence.EntityManager;
@@ -52,6 +54,11 @@ public class UserService implements IUserService {
     }
 
     public User save(User user) {
+        try {
+            user.setPassword(encode(user.getPassword()));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
         User saveUser = entityManager.merge(user);
         return saveUser;
     }
@@ -116,9 +123,17 @@ public class UserService implements IUserService {
 
     public Boolean hasChanges(User user) {
         User userCompare = getUserById(user.getId());
+        boolean passwordMatch;
 
-        if (userCompare.getEmail().equals(user.getEmail()) && userCompare.getPassword().equals(user.getPassword())
+        try {
+            passwordMatch = match(user.getPassword(), userCompare.getPassword());
+        } catch (Exception e) {
+            passwordMatch = false;
+        }
+
+        if (userCompare.getEmail().equals(user.getEmail()) && passwordMatch
                 && userCompare.getIsActive() == user.getIsActive()) {
+            user.setPassword(userCompare.getPassword());
             return false;
         }
 
