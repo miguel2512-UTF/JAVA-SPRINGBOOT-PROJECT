@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.javaproject.models.User;
+import com.project.javaproject.models.UserResponse;
 import com.project.javaproject.services.UserService;
+import com.project.javaproject.utils.UserMapper;
 
 @RestController
 @RequestMapping("/user")
@@ -27,7 +29,7 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/")
-    public ResponseEntity<List<User>> list() {
+    public ResponseEntity<List<UserResponse>> list() {
         return new ResponseEntity<>(userService.getUsers(), HttpStatus.OK);
     }
 
@@ -41,7 +43,7 @@ public class UserController {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
         res.put("success", true);
-        res.put("data", user);
+        res.put("data", UserMapper.mapUser(user));
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
@@ -60,7 +62,7 @@ public class UserController {
         }
 
         res.put("success", true);
-        res.put("created_user", userService.save(user));
+        res.put("created_user", UserMapper.mapUser(userService.save(user)));
 
         return new ResponseEntity<>(res, HttpStatus.CREATED);
     }
@@ -95,7 +97,7 @@ public class UserController {
         }
         
         res.put("success", true);
-        res.put("updated_user", requestUser);
+        res.put("updated_user", UserMapper.mapUser(requestUser));
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
@@ -112,7 +114,7 @@ public class UserController {
 
         userService.deleteUser(isUserExist);
         res.put("success", true);
-        res.put("data", isUserExist);
+        res.put("data", UserMapper.mapUser(isUserExist));
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 }

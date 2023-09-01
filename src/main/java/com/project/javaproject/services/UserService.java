@@ -13,8 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.project.javaproject.interfaces.IUserService;
 import com.project.javaproject.models.User;
+import com.project.javaproject.models.UserResponse;
+
 import static com.project.javaproject.security.PasswordEncoder.encode;
 import static com.project.javaproject.security.PasswordEncoder.match;
+
+import com.project.javaproject.utils.UserMapper;
 import com.project.javaproject.utils.ValidationMessages;
 
 import jakarta.persistence.EntityManager;
@@ -29,10 +33,12 @@ public class UserService implements IUserService {
     private EntityManager entityManager;
 
     @SuppressWarnings("all")
-    public List<User> getUsers() {
+    public List<UserResponse> getUsers() {
         String query = "SELECT * FROM User";
         List<User> users = entityManager.createNativeQuery(query, User.class).getResultList();
-        return users;
+        List<UserResponse> usersResponse = UserMapper.mapUsers(users);
+
+        return usersResponse;
     }
 
     public User getUserById(Long id) {

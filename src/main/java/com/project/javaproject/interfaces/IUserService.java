@@ -4,9 +4,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.project.javaproject.models.User;
+import com.project.javaproject.models.UserResponse;
 
 public interface IUserService {
-    public List<User> getUsers();
+    public List<UserResponse> getUsers();
 
     public User getUserById(Long id);
 
