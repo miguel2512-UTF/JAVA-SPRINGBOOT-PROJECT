@@ -60,11 +60,7 @@ public class UserService implements IUserService {
     }
 
     public User save(User user) {
-        try {
-            user.setPassword(encode(user.getPassword()));
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+        user.setPassword(encode(user.getPassword()));
         User saveUser = entityManager.merge(user);
         return saveUser;
     }
@@ -129,15 +125,8 @@ public class UserService implements IUserService {
 
     public Boolean hasChanges(User user) {
         User userCompare = getUserById(user.getId());
-        boolean passwordMatch;
 
-        try {
-            passwordMatch = match(user.getPassword(), userCompare.getPassword());
-        } catch (Exception e) {
-            passwordMatch = false;
-        }
-
-        if (userCompare.getEmail().equals(user.getEmail()) && passwordMatch
+        if (userCompare.getEmail().equals(user.getEmail()) && match(user.getPassword(), userCompare.getPassword())
                 && userCompare.getIsActive() == user.getIsActive()) {
             user.setPassword(userCompare.getPassword());
             return false;

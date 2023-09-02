@@ -1,8 +1,8 @@
 package com.project.javaproject.services;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.Base64;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +13,6 @@ import com.project.javaproject.security.PasswordEncoder;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 public class LoginService {
@@ -29,14 +28,7 @@ public class LoginService {
             return false;
         }
 
-        boolean passwordMatch;
-        try {
-            passwordMatch = PasswordEncoder.match(user.getPassword(), isUserFound.getPassword());
-        } catch(Exception e) {
-            passwordMatch = false;
-        }
-
-        if (passwordMatch) {
+        if (PasswordEncoder.match(user.getPassword(), isUserFound.getPassword())) {
             return true;
         }
 
@@ -54,22 +46,6 @@ public class LoginService {
         }
     }
 
-    public void isAuthenticated(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String token = request.getHeader("authorization").split(" ")[1];
-        String tokenError = validateToken(token);
-
-        System.out.println(tokenError);
-
-        if (tokenError != null) {
-            PrintWriter out = response.getWriter();
-            response.setStatus(403);
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            out.println(tokenError);
-            out.close();
-        }
-    }
-
     public Boolean isAuthenticated(HttpServletRequest request) {
         String token = request.getHeader("authorization").split(" ")[1];
         String tokenError = validateToken(token);
@@ -83,5 +59,18 @@ public class LoginService {
 
     public String getToken(HttpServletRequest request) {
         return request.getHeader("authorization");
+    }
+
+    public User getUserSession(HttpServletRequest request) {
+        String token = getToken(request).split(" ")[1];
+        String email = (String) decode(token.split("\\.")[1]).get("email");
+        
+        User user = userService.getUserByEmail(email);
+        return user;
+    }
+
+    private static JSONObject decode(String encodedString) {
+        String decodedString = new String(Base64.getUrlDecoder().decode(encodedString));
+        return new JSONObject(decodedString);
     }
 }
