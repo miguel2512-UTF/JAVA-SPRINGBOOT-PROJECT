@@ -32,10 +32,9 @@ public class UserService implements IUserService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    @SuppressWarnings("all")
     public List<UserResponse> getUsers() {
-        String query = "SELECT * FROM User";
-        List<User> users = entityManager.createNativeQuery(query, User.class).getResultList();
+        String query = "FROM User";
+        List<User> users = entityManager.createQuery(query, User.class).getResultList();
         List<UserResponse> usersResponse = UserMapper.mapUsers(users);
 
         return usersResponse;
@@ -46,10 +45,9 @@ public class UserService implements IUserService {
         return user;
     }
 
-    @SuppressWarnings("all")
     public User getUserByEmail(String email) {
-        String query = "SELECT * FROM User WHERE email = :email";
-        List<User> result = entityManager.createNativeQuery(query, User.class).setParameter("email", email)
+        String query = "SELECT u FROM User u WHERE email = :email";
+        List<User> result = entityManager.createQuery(query, User.class).setParameter("email", email)
                 .setMaxResults(1).getResultList();
 
         if (result.size() > 0) {
