@@ -23,6 +23,10 @@ public class UserResponse {
     @Getter
     private List<Loan> loans;
 
+    @Getter
+    @Setter
+    private String role;
+
     public UserResponse() {
     }
 
