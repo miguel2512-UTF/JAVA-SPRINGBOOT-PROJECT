@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,6 +30,33 @@ public class RoleController {
     public ApiResponse getRoles() {
         Map<String, Object> body = new HashMap<>();
         body.put("data", roleService.getAll());
+        return ApiResponse.response(true, body, HttpStatus.OK);
+    }
+
+    @GetMapping("/query")
+    public ApiResponse getRole(@Param("id") String id, @Param("name") String name) {
+        Map<String, Object> body = new HashMap<>();
+        Role isRoleFound = new Role();
+
+        try {
+            if (id != null) {
+                isRoleFound = roleService.getRoleById(Long.valueOf(id));
+            }
+        } catch(Exception e) {
+            body.put("message", "Id must be long type");
+            return ApiResponse.response(false, body, HttpStatus.BAD_REQUEST);
+        }
+        
+        if (name != null) {
+            isRoleFound = roleService.getRoleByName(name);
+        }
+
+        if (isRoleFound == null) {
+            body.put("message", "Role not found");
+            return ApiResponse.response(false, body, HttpStatus.NOT_FOUND);
+        }
+
+        body.put("data", isRoleFound);
         return ApiResponse.response(true, body, HttpStatus.OK);
     }
 

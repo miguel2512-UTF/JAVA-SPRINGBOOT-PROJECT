@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.javaproject.models.User;
+import com.project.javaproject.services.RoleService;
 import com.project.javaproject.services.UserService;
 import com.project.javaproject.utils.ApiResponse;
 import com.project.javaproject.utils.UserMapper;
@@ -25,6 +26,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private RoleService roleService;
 
     @GetMapping("/")
     public ApiResponse list() {
@@ -84,6 +88,7 @@ public class UserController {
         }
 
         requestUser.setLoans(isUserFound.getLoans());
+        requestUser.setRole(roleService.getRoleById(requestUser.getRole().getId()));
 
         if (userService.hasChanges(requestUser)) {
             userService.save(requestUser);

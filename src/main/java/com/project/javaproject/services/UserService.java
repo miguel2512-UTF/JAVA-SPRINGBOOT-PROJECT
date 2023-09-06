@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,9 @@ public class UserService implements IUserService {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    @Autowired
+    private RoleService roleService;
 
     public List<UserResponse> getUsers() {
         String query = "FROM User";
@@ -118,6 +122,14 @@ public class UserService implements IUserService {
             user.setIsActive(true);
         }
 
+        if (user.getRole().getId() == null) {
+            errors.put("role", "Role id is required");
+        } else {
+            if (roleService.getRoleById(user.getRole().getId()) == null) {
+                errors.put("role", "Role doesn't exist");
+            }
+        }
+
         return errors;
     }
 
@@ -125,8 +137,7 @@ public class UserService implements IUserService {
         User userCompare = getUserById(user.getId());
 
         if (userCompare.getEmail().equals(user.getEmail()) && match(user.getPassword(), userCompare.getPassword())
-                && userCompare.getIsActive() == user.getIsActive()) {
-            user.setPassword(userCompare.getPassword());
+                && userCompare.getIsActive() == user.getIsActive() && userCompare.getRole().getId() == user.getRole().getId()) {
             return false;
         }
 

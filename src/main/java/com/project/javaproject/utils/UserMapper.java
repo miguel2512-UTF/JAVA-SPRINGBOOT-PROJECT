@@ -14,7 +14,7 @@ public class UserMapper {
         userResponse.setEmail(user.getEmail());
         userResponse.setIsActive(user.getIsActive());
         userResponse.setLoans(user.getLoans());
-        userResponse.setRole(user.getRole());
+        userResponse.setRole(user.getRoleName());
 
         return userResponse;
     }

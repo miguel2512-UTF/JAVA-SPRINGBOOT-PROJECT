@@ -3,6 +3,8 @@ package com.project.javaproject.models;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.project.javaproject.utils.UserMapper;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -43,11 +45,11 @@ public class Role {
     @Setter
     private List<User> users;
 
-    public List<User> getUsers() {
+    public List<UserResponse> getUsers() {
         if (this.users == null) {
             this.users = new ArrayList<User>();
         }
 
-        return this.users;
+        return UserMapper.mapUsers(users);
     }
 }

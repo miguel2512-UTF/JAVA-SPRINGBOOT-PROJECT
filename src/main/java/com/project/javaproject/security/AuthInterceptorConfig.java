@@ -11,7 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @EnableWebMvc
 public class AuthInterceptorConfig implements WebMvcConfigurer {
-	List<String> protectedRoutes = Arrays.asList("/user/**", "/loan/**");
+	List<String> protectedRoutes = Arrays.asList("/user/**", "/loan/**", "/role/**");
 
     @Override
 	public void addInterceptors(InterceptorRegistry registry) {

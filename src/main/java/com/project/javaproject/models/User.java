@@ -51,6 +51,7 @@ public class User implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonProperty(access = Access.WRITE_ONLY)
+    @Getter
     @Setter
     private Role role;
 
@@ -64,7 +65,7 @@ public class User implements Serializable {
         this.isActive = isActive;
     }
 
-    public String getRole() {
+    public String getRoleName() {
         if (this.role == null) {
             return null;
         }
