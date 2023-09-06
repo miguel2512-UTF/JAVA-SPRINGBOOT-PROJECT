@@ -1,6 +1,8 @@
 package com.project.javaproject.services;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -56,5 +58,38 @@ public class RoleService implements IRoleService {
 
         return true;
     }
-    
+
+    public Map<String, Object> checkRoleHasErrors(Role role) {
+        Map<String, Object> errors = new HashMap<String, Object>();
+
+        if (role.getName() == null || role.getName().isEmpty()) {
+            role.setName("");
+            errors.put("name", "Name is required");
+        }
+
+        if (checkNameIsBusy(role)) {
+            errors.put("name", "Name is already in use");
+        }
+
+        if (role.getDescription() == null || role.getDescription().isEmpty()) {
+            errors.put("description", "Description is required");
+        }
+
+        return errors;
+    }
+
+    private boolean checkNameIsBusy(Role role) {
+        Role isRoleFound = getRoleByName(role.getName());
+
+        if (isRoleFound == null) {
+            return false;
+        }
+
+        if (isRoleFound.getId() == role.getId()) {
+            return false;
+        }
+
+        return true;
+    }
+
 }

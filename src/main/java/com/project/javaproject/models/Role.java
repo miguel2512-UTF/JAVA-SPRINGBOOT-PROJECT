@@ -1,5 +1,6 @@
 package com.project.javaproject.models;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -39,7 +40,14 @@ public class Role {
     private String description;
 
     @OneToMany(mappedBy = "role", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @Getter
     @Setter
     private List<User> users;
+
+    public List<User> getUsers() {
+        if (this.users == null) {
+            this.users = new ArrayList<User>();
+        }
+
+        return this.users;
+    }
 }
