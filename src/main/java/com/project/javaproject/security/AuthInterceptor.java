@@ -2,7 +2,10 @@ package com.project.javaproject.security;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -14,7 +17,11 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
 
-	private LoginService loginService = new LoginService();
+	private LoginService loginService;
+
+	AuthInterceptor(LoginService loginService) {
+		this.loginService = loginService;
+	}
 
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
@@ -45,6 +52,13 @@ public class AuthInterceptor implements HandlerInterceptor {
 	private void setNotAuthenticatedMessage(HttpServletResponse response, String message) throws IOException {
 		PrintWriter out = response.getWriter();
 		response.setStatus(403);
-		out.println(message);
+		
+		Map<String, Object> body = new HashMap<String, Object>();
+		body.put("message", message);
+
+		JSONObject jsonResponse = new JSONObject();
+		jsonResponse.put("success", false);
+		jsonResponse.put("body", body);
+		out.print(jsonResponse);
 	}
 }

@@ -50,7 +50,7 @@ public class UserService implements IUserService {
     }
 
     public User getUserByEmail(String email) {
-        String query = "SELECT u FROM User u WHERE email = :email";
+        String query = "SELECT u FROM User u JOIN FETCH u.role WHERE email = :email";
         List<User> result = entityManager.createQuery(query, User.class).setParameter("email", email)
                 .setMaxResults(1).getResultList();
 
