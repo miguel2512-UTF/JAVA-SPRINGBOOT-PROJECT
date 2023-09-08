@@ -17,7 +17,7 @@ public class InterceptorsConfig implements WebMvcConfigurer {
 	@Autowired
 	LoginService loginService;
 
-	List<String> protectedRoutes = Arrays.asList("/user/**", "/loan/**", "/role/**");
+	List<String> protectedRoutes = Arrays.asList("/user/**", "/loan/**", "/role/**", "/me/**");
 	List<String> adminRoutes = Arrays.asList("/user/**", "/role/**");
 
     @Override

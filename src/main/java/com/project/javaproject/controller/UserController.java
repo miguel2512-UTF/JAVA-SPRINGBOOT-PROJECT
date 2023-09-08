@@ -30,7 +30,7 @@ public class UserController {
     @Autowired
     private RoleService roleService;
 
-    @GetMapping("/")
+    @GetMapping(path = {"", "/"})
     public ApiResponse list() {
         Map<String, Object> body = new HashMap<>();
         body.put("data", userService.getUsers());
