@@ -1,5 +1,6 @@
 package com.project.javaproject.models;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -59,8 +60,7 @@ public class Loan {
     @Setter
     private User user;
 
-    @OneToMany(mappedBy = "loan", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @Getter
+    @OneToMany(mappedBy = "loan", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Setter
     private List<Payment> payments;
 
@@ -82,5 +82,13 @@ public class Loan {
         }
 
         return this.user.getId();
+    }
+
+    public List<Payment> getPayments() {
+        if (this.payments == null) {
+            this.payments = new ArrayList<Payment>();
+        }
+
+        return this.payments;
     }
 }

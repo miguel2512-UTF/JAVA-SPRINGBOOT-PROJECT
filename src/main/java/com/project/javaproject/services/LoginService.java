@@ -13,6 +13,7 @@ import com.project.javaproject.security.PasswordEncoder;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 @Service
 public class LoginService {
@@ -21,7 +22,7 @@ public class LoginService {
 
     @Autowired
     private IUserService userService;
-    
+
     public Boolean authenticateUser(User user) {
         User isUserFound = userService.getUserByEmail(user.getEmail());
         if (isUserFound == null) {
@@ -62,10 +63,16 @@ public class LoginService {
     }
 
     public User getUserSession(HttpServletRequest request) {
+        HttpSession session = request.getSession(true);
         String token = getToken(request).split(" ")[1];
         String email = (String) decode(token.split("\\.")[1]).get("email");
-        
-        User user = userService.getUserByEmail(email);
+
+        if (session.getAttribute("user") == null) {
+            System.out.println("Se crea la sesión");
+            session.setAttribute("user", userService.getUserByEmail(email));
+        }
+        User user = (User) session.getAttribute("user");
+
         return user;
     }
 

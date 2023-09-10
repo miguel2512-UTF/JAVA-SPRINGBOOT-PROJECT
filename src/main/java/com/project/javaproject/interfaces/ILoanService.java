@@ -4,9 +4,12 @@ import java.util.List;
 import java.util.Map;
 
 import com.project.javaproject.models.Loan;
+import com.project.javaproject.models.User;
 
 public interface ILoanService {
     public List<Loan> getAll();
+
+    public List<Loan> getAllByUserId(User id);
 
     public Loan getLoan(Long id);
 

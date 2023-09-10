@@ -6,9 +6,9 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.javaproject.models.User;
@@ -17,9 +17,10 @@ import com.project.javaproject.utils.ApiResponse;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
-@RequestMapping("/login")
 public class LoginController {
 
     public static final String KEY = "SECRET_KEY";
@@ -27,7 +28,7 @@ public class LoginController {
     @Autowired
     private LoginService loginService;
 
-    @PostMapping("")
+    @PostMapping("/login")
     public ApiResponse login(@RequestBody User user) {
         Map<String, Object> body = new HashMap<String, Object>();
         if (!loginService.authenticateUser(user)) {
@@ -43,6 +44,16 @@ public class LoginController {
                 .compact();
         
         body.put("auth_token", token);
+        return ApiResponse.response(true, body, HttpStatus.OK);
+    }
+
+    @GetMapping("/logout")
+    public ApiResponse logout(HttpServletRequest request, HttpServletResponse response) {
+        Map<String, Object> body = new HashMap<String, Object>();
+
+        request.getSession().invalidate();
+
+        body.put("message", "logout successfully");
         return ApiResponse.response(true, body, HttpStatus.OK);
     }
 

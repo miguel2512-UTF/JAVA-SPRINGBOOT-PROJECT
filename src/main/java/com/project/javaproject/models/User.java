@@ -44,12 +44,12 @@ public class User implements Serializable {
     @Setter
     private Boolean isActive;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Getter
     @Setter
     private List<Loan> loans;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JsonProperty(access = Access.WRITE_ONLY)
     @Getter
     @Setter
