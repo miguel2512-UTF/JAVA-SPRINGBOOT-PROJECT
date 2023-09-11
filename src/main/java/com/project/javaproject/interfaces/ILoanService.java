@@ -9,7 +9,7 @@ import com.project.javaproject.models.User;
 public interface ILoanService {
     public List<Loan> getAll();
 
-    public List<Loan> getAllByUserId(User id);
+    public List<Loan> getAllByUserId(User user);
 
     public Loan getLoan(Long id);
 

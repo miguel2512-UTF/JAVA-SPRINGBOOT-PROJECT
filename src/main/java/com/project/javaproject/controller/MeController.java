@@ -104,12 +104,11 @@ public class MeController {
         Map<String, Object> body = new HashMap<>();
         Loan loan = loanService.getLoan(id);
         User currentUser = loginService.getUserSession(request);
-        if (loan == null || loan.getUserId() != currentUser.getId()) {
+        if (loan == null || (loan.getUserId() != currentUser.getId() && !loginService.hasPermission(currentUser))) {
             body.put("message", "Loan not found");
             return ApiResponse.response(false, body, HttpStatus.NOT_FOUND);
         }
 
-        System.out.println(loan.getUser().getEmail());
         body.put("data", loan);
         return ApiResponse.response(true, body, HttpStatus.OK);
     }

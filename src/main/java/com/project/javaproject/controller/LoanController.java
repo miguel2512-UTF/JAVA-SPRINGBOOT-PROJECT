@@ -1,6 +1,8 @@
 package com.project.javaproject.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.project.javaproject.interfaces.ILoanService;
 import com.project.javaproject.interfaces.IUserService;
 import com.project.javaproject.models.Loan;
+import com.project.javaproject.models.User;
+import com.project.javaproject.services.LoginService;
 import com.project.javaproject.utils.ApiResponse;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/loan")
@@ -29,10 +35,22 @@ public class LoanController {
     @Autowired
     private IUserService userService;
 
-    @GetMapping("/")
-    public ApiResponse getLoans() {
+    @Autowired
+    private LoginService loginService;
+
+    @GetMapping({ "", "/" })
+    public ApiResponse getLoans(HttpServletRequest request) {
         Map<String, Object> data = new HashMap<>();
-        data.put("data", loanService.getAll());
+        User currentUser = loginService.getUserSession(request);
+        List<Loan> loans = new ArrayList<>();
+
+        if (loginService.hasPermission(currentUser)) {
+            loans = loanService.getAll();
+        } else {
+            loans = loanService.getAllByUserId(currentUser);
+        }
+
+        data.put("data", loans);
         return ApiResponse.response(true, data, HttpStatus.OK);
     }
 

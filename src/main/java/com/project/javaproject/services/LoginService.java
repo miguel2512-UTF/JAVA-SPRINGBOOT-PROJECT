@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.project.javaproject.interfaces.IUserService;
 import com.project.javaproject.models.User;
 import com.project.javaproject.security.PasswordEncoder;
+import com.project.javaproject.utils.RoleTypes;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -74,6 +75,14 @@ public class LoginService {
         User user = (User) session.getAttribute("user");
 
         return user;
+    }
+
+    public boolean hasPermission(User user) {
+        if (user.getRoleName().equals(RoleTypes.ADMIN)) {
+            return true;
+        }
+
+        return false;
     }
 
     private static JSONObject decode(String encodedString) {
