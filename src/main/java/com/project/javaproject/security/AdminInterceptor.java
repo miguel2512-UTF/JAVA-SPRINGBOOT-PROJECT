@@ -1,7 +1,6 @@
 package com.project.javaproject.security;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,8 +35,8 @@ public class AdminInterceptor implements HandlerInterceptor {
     }
 
     private void setNotAuthenticatedMessage(HttpServletResponse response, String message) throws IOException {
-		PrintWriter out = response.getWriter();
 		response.setStatus(403);
+        response.setContentType("application/json");
 		
 		Map<String, Object> body = new HashMap<String, Object>();
 		body.put("message", message);
@@ -45,6 +44,6 @@ public class AdminInterceptor implements HandlerInterceptor {
 		JSONObject jsonResponse = new JSONObject();
 		jsonResponse.put("success", false);
 		jsonResponse.put("body", body);
-		out.print(jsonResponse);
+		response.getOutputStream().print(jsonResponse.toString());
 	}
 }
