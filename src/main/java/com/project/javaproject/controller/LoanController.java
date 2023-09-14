@@ -55,10 +55,16 @@ public class LoanController {
     }
 
     @GetMapping("/{idLoan}")
-    public ApiResponse getLoan(@PathVariable Long idLoan) {
+    public ApiResponse getLoan(@PathVariable Long idLoan, HttpServletRequest request) {
+        User currentUser = loginService.getUserSession(request);
         Loan loan = loanService.getLoan(idLoan);
         Map<String, Object> data = new HashMap<>();
         if (loan == null) {
+            data.put("message", "Loan not found");
+            return ApiResponse.response(false, data, HttpStatus.NOT_FOUND);
+        }
+
+        if (loan.getUserId() != currentUser.getId() && !loginService.hasPermission(currentUser)) {
             data.put("message", "Loan not found");
             return ApiResponse.response(false, data, HttpStatus.NOT_FOUND);
         }
@@ -67,17 +73,31 @@ public class LoanController {
         return ApiResponse.response(true, data, HttpStatus.OK);
     }
 
-    @PostMapping("/")
-    public ApiResponse createLoan(@RequestBody Loan loan) {
+    @PostMapping({ "", "/" })
+    public ApiResponse createLoan(@RequestBody Loan loan, HttpServletRequest request) {
+        User currentuUser = loginService.getUserSession(request);
         Map<String, Object> data = new HashMap<>();
-        Map<String, Object> errors = loanService.checkLoanHasErrors(loan);
+        Map<String, Object> errors = new HashMap<>();
+        Long userId = loan.getUserId();
+
+        if (userId == null) {
+            errors.put("user", "User id must be provided");
+            data.put("errors", errors);
+            return ApiResponse.response(false, data, HttpStatus.BAD_REQUEST);
+        }
+
+        if (userId != currentuUser.getId() && !loginService.hasPermission(currentuUser)) {
+            data.put("message", "You do not have permission to make this.");
+            return ApiResponse.response(false, data, HttpStatus.BAD_REQUEST);
+        }
+
+        errors = loanService.checkLoanHasErrors(loan);
 
         if (errors.size() > 0) {
             data.put("errors", errors);
             return ApiResponse.response(false, data, HttpStatus.BAD_REQUEST);
         }
 
-        Long userId = loan.getUser().getId();
         loan.setIdLoan(null);
         loan.setDebtValue(loan.getLoanValue());
         loan.setIsPayment(false);
@@ -89,16 +109,29 @@ public class LoanController {
     }
 
     @PutMapping("/{idLoan}")
-    public ApiResponse update(@PathVariable Long idLoan, @RequestBody Loan requestLoan) {
+    public ApiResponse update(@PathVariable Long idLoan, @RequestBody Loan requestLoan, HttpServletRequest request) {
         Map<String, Object> data = new HashMap<>();
+        Map<String, Object> errors = new HashMap<>();
         Loan isLoanFound = loanService.getLoan(idLoan);
+        User currentUser = loginService.getUserSession(request);
 
-        if (isLoanFound == null) {
+        if (isLoanFound == null || (isLoanFound.getUserId() != currentUser.getId() && !loginService.hasPermission(currentUser))) {
             data.put("message", "Loan not found");
             return ApiResponse.response(false, data, HttpStatus.NOT_FOUND);
         }
-        
-        Map<String, Object> errors = loanService.checkLoanHasErrors(requestLoan);
+
+        if (requestLoan.getUserId() == null) {
+            errors.put("user", "User id must be provided");
+            data.put("errors", errors);
+            return ApiResponse.response(false, data, HttpStatus.BAD_REQUEST);
+        }
+
+        if (requestLoan.getUserId() != currentUser.getId() && !loginService.hasPermission(currentUser)) {
+            data.put("message", "You do not have permission to make this.");
+            return ApiResponse.response(false, data, HttpStatus.BAD_REQUEST);
+        }
+
+        errors = loanService.checkLoanHasErrors(requestLoan);
         if (errors.size() > 0) {
             data.put("errors", errors);
             return ApiResponse.response(false, data, HttpStatus.BAD_REQUEST);
@@ -126,17 +159,20 @@ public class LoanController {
     }
 
     @DeleteMapping("/{idLoan}")
-    public ApiResponse delete(@PathVariable Long idLoan) {
-        Map<String, Object> data = new HashMap<>();
-        Boolean isDeletedLoan = loanService.deleteLoan(idLoan);
-
-        if (isDeletedLoan == false) {
-            data.put("message", "Loan not found");
-            return ApiResponse.response(false, data, HttpStatus.NOT_FOUND);
+    public ApiResponse delete(@PathVariable Long idLoan, HttpServletRequest request) {
+        Map<String, Object> body = new HashMap<>();
+        User currentUser = loginService.getUserSession(request);
+        Loan isLoanFound = loanService.getLoan(idLoan);
+        
+        if (isLoanFound == null || (isLoanFound.getUserId() != currentUser.getId() && !loginService.hasPermission(currentUser))) {
+            body.put("message", "Loan not found");
+            return ApiResponse.response(false, body, HttpStatus.NOT_FOUND);
         }
 
-        data.put("message", "Loan deleted successfully");
-        return ApiResponse.response(true, data, HttpStatus.OK);
+        loanService.deleteLoan(idLoan);
+
+        body.put("message", "Loan deleted successfully");
+        return ApiResponse.response(true, body, HttpStatus.OK);
     }
 
     private void changePaymentState(Loan loan) {
