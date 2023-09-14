@@ -87,6 +87,16 @@ public class UserService implements IUserService {
         return true;
     }
 
+    public boolean checkUserExist(Long id) {
+        String query = "SELECT * FROM User WHERE id = :id";
+        try {
+            entityManager.createNativeQuery(query).setParameter("id", id).getSingleResult();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public Map<String, Object> checkUserHasErrors(User user) {
         Map<String, Object> errors = new HashMap<>();
         List<String> emailErrors = new ArrayList<>();
@@ -136,8 +146,12 @@ public class UserService implements IUserService {
     public Boolean hasChanges(User user) {
         User userCompare = getUserById(user.getId());
 
-        if (userCompare.getEmail().equals(user.getEmail()) && match(user.getPassword(), userCompare.getPassword())
-                && userCompare.getIsActive() == user.getIsActive() && userCompare.getRole().getId() == user.getRole().getId()) {
+        if (
+            userCompare.getEmail().equals(user.getEmail())
+            && match(user.getPassword(), userCompare.getPassword())
+            && userCompare.getIsActive() == user.getIsActive()
+            && userCompare.getRole().getId() == user.getRole().getId()
+        ) {
             return false;
         }
 

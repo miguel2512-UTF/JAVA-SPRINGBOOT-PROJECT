@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.javaproject.interfaces.ILoanService;
-import com.project.javaproject.interfaces.IUserService;
 import com.project.javaproject.models.Loan;
 import com.project.javaproject.models.User;
 import com.project.javaproject.services.LoginService;
@@ -31,9 +30,6 @@ public class LoanController {
 
     @Autowired
     private ILoanService loanService;
-
-    @Autowired
-    private IUserService userService;
 
     @Autowired
     private LoginService loginService;
@@ -75,43 +71,35 @@ public class LoanController {
 
     @PostMapping({ "", "/" })
     public ApiResponse createLoan(@RequestBody Loan loan, HttpServletRequest request) {
-        User currentuUser = loginService.getUserSession(request);
-        Map<String, Object> data = new HashMap<>();
-        Map<String, Object> errors = new HashMap<>();
+        Map<String, Object> body = new HashMap<>();
+        User currentUser = loginService.getUserSession(request);
+        
         Long userId = loan.getUserId();
-
-        if (userId == null) {
-            errors.put("user", "User id must be provided");
-            data.put("errors", errors);
-            return ApiResponse.response(false, data, HttpStatus.BAD_REQUEST);
+        loan.setUserId(currentUser.getId());
+        
+        if (userId != null && loginService.hasPermission(currentUser)) {
+            loan.setUserId(userId);
         }
-
-        if (userId != currentuUser.getId() && !loginService.hasPermission(currentuUser)) {
-            data.put("message", "You do not have permission to make this.");
-            return ApiResponse.response(false, data, HttpStatus.BAD_REQUEST);
-        }
-
-        errors = loanService.checkLoanHasErrors(loan);
+        
+        Map<String, Object> errors = loanService.checkLoanHasErrors(loan);
 
         if (errors.size() > 0) {
-            data.put("errors", errors);
-            return ApiResponse.response(false, data, HttpStatus.BAD_REQUEST);
+            body.put("errors", errors);
+            return ApiResponse.response(false, body, HttpStatus.BAD_REQUEST);
         }
 
         loan.setIdLoan(null);
         loan.setDebtValue(loan.getLoanValue());
         loan.setIsPayment(false);
-        loan.setUser(userService.getUserById(userId));
         Loan newLoan = loanService.save(loan);
 
-        data.put("created_loan", newLoan);
-        return ApiResponse.response(true, data, HttpStatus.CREATED);
+        body.put("created_loan", newLoan);
+        return ApiResponse.response(true, body, HttpStatus.CREATED);
     }
 
     @PutMapping("/{idLoan}")
     public ApiResponse update(@PathVariable Long idLoan, @RequestBody Loan requestLoan, HttpServletRequest request) {
         Map<String, Object> data = new HashMap<>();
-        Map<String, Object> errors = new HashMap<>();
         Loan isLoanFound = loanService.getLoan(idLoan);
         User currentUser = loginService.getUserSession(request);
 
@@ -120,18 +108,14 @@ public class LoanController {
             return ApiResponse.response(false, data, HttpStatus.NOT_FOUND);
         }
 
-        if (requestLoan.getUserId() == null) {
-            errors.put("user", "User id must be provided");
-            data.put("errors", errors);
-            return ApiResponse.response(false, data, HttpStatus.BAD_REQUEST);
+        Long userId = requestLoan.getUserId();
+        requestLoan.setUserId(currentUser.getId());
+        
+        if (userId != null && loginService.hasPermission(currentUser)) {
+            requestLoan.setUserId(userId);
         }
 
-        if (requestLoan.getUserId() != currentUser.getId() && !loginService.hasPermission(currentUser)) {
-            data.put("message", "You do not have permission to make this.");
-            return ApiResponse.response(false, data, HttpStatus.BAD_REQUEST);
-        }
-
-        errors = loanService.checkLoanHasErrors(requestLoan);
+        Map<String, Object> errors = loanService.checkLoanHasErrors(requestLoan);
         if (errors.size() > 0) {
             data.put("errors", errors);
             return ApiResponse.response(false, data, HttpStatus.BAD_REQUEST);

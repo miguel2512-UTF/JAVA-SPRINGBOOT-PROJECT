@@ -20,4 +20,6 @@ public interface IUserService {
     public Map<String, Object> checkUserHasErrors(User user);
 
     public Boolean hasChanges(User user);
+
+    public boolean checkUserExist(Long id);
 }

@@ -58,11 +58,12 @@ public class Loan {
     @JsonProperty(access = Access.WRITE_ONLY)
     @Getter
     @Setter
-    private User user;
+    private User user = new User();
 
     @OneToMany(mappedBy = "loan", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Getter
     @Setter
-    private List<Payment> payments;
+    private List<Payment> payments = new ArrayList<Payment>();
 
     public Loan() {}
 
@@ -77,18 +78,10 @@ public class Loan {
     }
 
     public Long getUserId() {
-        if (this.user == null) {
-            return null;
-        }
-
         return this.user.getId();
     }
 
-    public List<Payment> getPayments() {
-        if (this.payments == null) {
-            this.payments = new ArrayList<Payment>();
-        }
-
-        return this.payments;
+    public void setUserId(Long id) {
+        this.user.setId(id);
     }
 }

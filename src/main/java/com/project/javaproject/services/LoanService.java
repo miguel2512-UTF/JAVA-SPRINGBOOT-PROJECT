@@ -88,7 +88,7 @@ public class LoanService implements ILoanService {
         if (loan.getUserId() == null) {
             errors.put("user", "User id must be provided");
         } else {
-            if (userService.getUserById(loan.getUserId()) == null) {
+            if (!userService.checkUserExist(loan.getUserId())) {
                 errors.put("user", "User doesn't exist");
             }
         }
