@@ -72,8 +72,14 @@ public class LoginService {
             System.out.println("Se crea la sesión");
             session.setAttribute("user", userService.getUserByEmail(email));
         }
+        
         User user = (User) session.getAttribute("user");
 
+        if (!user.getEmail().equals(email)) {
+            session.setAttribute("user", userService.getUserByEmail(email));
+            user = (User) session.getAttribute("user");
+        }
+        
         return user;
     }
 
