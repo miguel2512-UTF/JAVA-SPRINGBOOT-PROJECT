@@ -8,8 +8,10 @@ import org.springframework.stereotype.Service;
 
 import com.project.javaproject.interfaces.IUserService;
 import com.project.javaproject.models.User;
+import com.project.javaproject.models.UserResponse;
 import com.project.javaproject.security.PasswordEncoder;
 import com.project.javaproject.utils.RoleTypes;
+import com.project.javaproject.utils.UserMapper;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -70,14 +72,14 @@ public class LoginService {
 
         if (session.getAttribute("user") == null) {
             System.out.println("Se crea la sesión");
-            session.setAttribute("user", userService.getUserByEmail(email));
+            session.setAttribute("user", UserMapper.mapUser(userService.getUserByEmail(email)));
         }
         
-        User user = (User) session.getAttribute("user");
+        User user = UserMapper.mapUser((UserResponse) session.getAttribute("user"));
 
         if (!user.getEmail().equals(email)) {
-            session.setAttribute("user", userService.getUserByEmail(email));
-            user = (User) session.getAttribute("user");
+            session.setAttribute("user", UserMapper.mapUser(userService.getUserByEmail(email)));
+            user = UserMapper.mapUser((UserResponse) session.getAttribute("user"));
         }
         
         return user;

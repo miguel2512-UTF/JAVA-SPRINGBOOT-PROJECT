@@ -87,6 +87,20 @@ public class UserService implements IUserService {
         return true;
     }
 
+    @SuppressWarnings("unchecked")
+    public void customQuery() {
+        String query = "SELECT User.email as email,User.is_active,Role.name as name FROM User INNER JOIN Role ON User.role_id = Role.id";
+        List<Object[]> result = entityManager.createNativeQuery(query, Object[].class).getResultList();
+        
+        result.forEach(System.out::println);
+
+        for(Object[] obj : result) {
+            for(Object obj2 : obj) {
+                System.out.println(obj2);
+            }
+        }
+    }
+
     public boolean checkUserExist(Long id) {
         String query = "SELECT * FROM User WHERE id = :id";
         try {

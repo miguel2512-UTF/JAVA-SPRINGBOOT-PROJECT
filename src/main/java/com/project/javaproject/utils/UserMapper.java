@@ -19,6 +19,17 @@ public class UserMapper {
         return userResponse;
     }
 
+    public static User mapUser(UserResponse userResponse) {
+        User user = new User();
+        user.setId(userResponse.getId());
+        user.setEmail(userResponse.getEmail());
+        user.setIsActive(userResponse.getIsActive());
+        user.setLoans(userResponse.getLoans());
+        user.getRole().setName(userResponse.getRole());
+
+        return user;
+    }
+
     public static List<UserResponse> mapUsers(List<User> users) {
         List<UserResponse> usersResponse = new ArrayList<>();
         for (int i = 0; i < users.size(); i++) {

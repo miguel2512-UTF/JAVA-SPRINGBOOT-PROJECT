@@ -1,6 +1,7 @@
 package com.project.javaproject.models;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -47,13 +48,13 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Getter
     @Setter
-    private List<Loan> loans;
+    private List<Loan> loans = new ArrayList<Loan>();
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JsonProperty(access = Access.WRITE_ONLY)
     @Getter
     @Setter
-    private Role role;
+    private Role role = new Role();
 
     public User() {
     }
