@@ -1,14 +1,10 @@
 package com.project.javaproject.security;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import com.project.javaproject.services.LoginService;
+import static com.project.javaproject.utils.ApiResponse.responseUnauthorized;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,35 +25,22 @@ public class AuthInterceptor implements HandlerInterceptor {
 		String token = loginService.getToken(request);
 
 		if (token == null) {
-			setNotAuthenticatedMessage(response, "Missing bearer token");
+			responseUnauthorized(response, "Missing bearer token");
 			return false;
 		}
 
 		if (!token.startsWith("Bearer ")) {
-			setNotAuthenticatedMessage(response, "The token must be provide like: Bearer {token}");
+			responseUnauthorized(response, "The token must be provide like: Bearer {token}");
 			return false;
 		}
 
 		String tokenError = loginService.validateToken(token.split(" ")[1]);
 
 		if (tokenError != null) {
-			setNotAuthenticatedMessage(response, tokenError);
+			responseUnauthorized(response, tokenError);
 			return false;
 		}
 
 		return true;
-	}
-
-	private void setNotAuthenticatedMessage(HttpServletResponse response, String message) throws IOException {
-		response.setStatus(401);
-        response.setContentType("application/json");
-		
-		Map<String, Object> body = new HashMap<String, Object>();
-		body.put("message", message);
-
-		JSONObject jsonResponse = new JSONObject();
-		jsonResponse.put("success", false);
-		jsonResponse.put("body", body);
-		response.getOutputStream().print(jsonResponse.toString());
 	}
 }

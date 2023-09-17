@@ -1,6 +1,8 @@
 package com.project.javaproject.services;
 
 import java.util.Base64;
+import java.util.Date;
+import java.util.List;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,21 +12,32 @@ import com.project.javaproject.interfaces.IUserService;
 import com.project.javaproject.models.User;
 import com.project.javaproject.models.UserResponse;
 import com.project.javaproject.security.PasswordEncoder;
-import com.project.javaproject.utils.RoleTypes;
+import com.project.javaproject.security.PermissionsConfig;
 import com.project.javaproject.utils.UserMapper;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 @Service
 public class LoginService {
 
-    public static final String KEY = "SECRET_KEY";
+    public static final String KEY = System.getenv("SECRET_KEY");
+    public static final int TOKEN_DURATION_HOURS = 3; 
 
     @Autowired
     private IUserService userService;
+
+    public String generateToken(User user) {
+        return Jwts.builder()
+                .signWith(SignatureAlgorithm.HS256, KEY)
+                .claim("email", user.getEmail())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + (TOKEN_DURATION_HOURS * 3600000)))
+                .compact();
+    }
 
     public Boolean authenticateUser(User user) {
         User isUserFound = userService.getUserByEmail(user.getEmail());
@@ -86,7 +99,9 @@ public class LoginService {
     }
 
     public boolean hasPermission(User user) {
-        if (user.getRoleName().equals(RoleTypes.ADMIN)) {
+        List<String> rolesWithPermissions = new PermissionsConfig().getRegistryRoles();
+        
+        if (rolesWithPermissions.contains(user.getRoleName())) {
             return true;
         }
 
