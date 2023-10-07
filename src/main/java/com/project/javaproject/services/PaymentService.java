@@ -14,6 +14,7 @@ import com.project.javaproject.interfaces.ILoanService;
 import com.project.javaproject.interfaces.IPaymentService;
 import com.project.javaproject.models.Loan;
 import com.project.javaproject.models.Payment;
+import com.project.javaproject.models.User;
 import com.project.javaproject.utils.Validation;
 
 import jakarta.persistence.EntityManager;
@@ -33,6 +34,11 @@ public class PaymentService implements IPaymentService {
     public List<Payment> getAll() {
         String query = "FROM Payment";
         return entityManager.createQuery(query, Payment.class).getResultList();
+    }
+
+    public List<Payment> getAllByUser(User user) {
+        String query = "SELECT p FROM Payment p WHERE loan.user = :user";
+        return entityManager.createQuery(query, Payment.class).setParameter("user", user).getResultList();
     }
 
     public Payment getPayment(Long id) {

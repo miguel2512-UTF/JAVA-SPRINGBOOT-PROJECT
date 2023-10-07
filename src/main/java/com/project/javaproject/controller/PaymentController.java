@@ -19,7 +19,11 @@ import com.project.javaproject.interfaces.ILoanService;
 import com.project.javaproject.interfaces.IPaymentService;
 import com.project.javaproject.models.Loan;
 import com.project.javaproject.models.Payment;
+import com.project.javaproject.models.User;
+import com.project.javaproject.services.LoginService;
 import com.project.javaproject.utils.ApiResponse;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/loan/payment")
@@ -31,33 +35,51 @@ public class PaymentController {
     @Autowired
     private ILoanService loanService;
 
+    @Autowired
+    private LoginService loginService;
+
     @GetMapping("/")
-    public ApiResponse list() {
+    public ApiResponse list(HttpServletRequest request) {
         Map<String, Object> body = new HashMap<>();
-        body.put("data", paymentService.getAll());
+        User currentUser = loginService.getUserSession(request);
+        
+        if (loginService.hasPermission(currentUser)) {
+            body.put("data", paymentService.getAll());
+        } else {
+            body.put("data", paymentService.getAllByUser(currentUser));
+        }
+
         return ApiResponse.response(true, body, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ApiResponse getPayment(@PathVariable Long id) {
+    public ApiResponse getPayment(@PathVariable Long id, HttpServletRequest request) {
         Payment payment = paymentService.getPayment(id);
         Map<String, Object> body = new HashMap<>();
+        User currentUser = loginService.getUserSession(request);
+
         if (payment == null) {
             body.put("message", "Payment not found");
             return ApiResponse.response(false, body, HttpStatus.NOT_FOUND);
         }
+
+        if (payment.getLoan().getUserId() != currentUser.getId() && !loginService.hasPermission(currentUser)) {
+            body.put("message", "Payment not found");
+            return ApiResponse.response(false, body, HttpStatus.NOT_FOUND);
+        }
+
         body.put("data", payment);
         return ApiResponse.response(true, body, HttpStatus.OK);
     }
 
     @PostMapping("/")
-    public ApiResponse createPayment(@RequestBody Payment payment) {
+    public ApiResponse createPayment(@RequestBody Payment payment, HttpServletRequest request) {
         payment.setId(null);
 
         if (payment.getDate() == null || payment.getDate().isEmpty()) {
             payment.setDate(LocalDate.now().toString());
         }
-
+    
         Map<String, Object> body = new HashMap<>();
         Map<String, Object> errors = paymentService.checkPaymentHasErrors(payment);
 
@@ -66,11 +88,20 @@ public class PaymentController {
             return ApiResponse.response(false, body, HttpStatus.BAD_REQUEST);
         }
         
+        User currentUser = loginService.getUserSession(request);
+        
         Long loanId = payment.getLoanId();
+        Loan loan = loanService.getLoan(loanId);
+
+        if (loan.getUserId() != currentUser.getId() && !loginService.hasPermission(currentUser)) {
+            errors.put("loan", "Loan doesn't exist");
+            body.put("errors", errors);
+            return ApiResponse.response(false, body, HttpStatus.NOT_FOUND);
+        }
+        
         payment.setLoan(loanService.getLoan(loanId));
         Payment newPayment = paymentService.save(payment);
 
-        Loan loan = newPayment.getLoan();
         Double debtValue = loan.getDebtValue() - newPayment.getValue();
         loan.setDebtValue(debtValue);
         if (loan.getDebtValue() == 0) {
@@ -84,11 +115,12 @@ public class PaymentController {
     }
 
     @PutMapping("/{id}")
-    public ApiResponse update(@PathVariable Long id, @RequestBody Payment requestPayment) {
+    public ApiResponse update(@PathVariable Long id, @RequestBody Payment requestPayment, HttpServletRequest request) {
         Map<String, Object> body = new HashMap<>();
         Payment isPaymentFound = paymentService.getPayment(id);
+        User currentUser = loginService.getUserSession(request);
 
-        if (isPaymentFound == null) {
+        if (isPaymentFound == null || (isPaymentFound.getLoan().getUserId() != currentUser.getId() && !loginService.hasPermission(currentUser))) {
             body.put("message", "Payment not found");
             return ApiResponse.response(false, body, HttpStatus.NOT_FOUND);
         }
@@ -110,18 +142,20 @@ public class PaymentController {
     }
 
     @DeleteMapping("/{id}")
-    public ApiResponse delete(@PathVariable Long id) {
+    public ApiResponse delete(@PathVariable Long id, HttpServletRequest request) {
         Map<String, Object> body = new HashMap<>();
-        Payment payment = paymentService.getPayment(id);
-        Boolean isDeletedPayment = paymentService.deletePayment(id);
+        Payment isPaymentFound = paymentService.getPayment(id);
+        User currentUser = loginService.getUserSession(request);
 
-        if (isDeletedPayment == false) {
+        if (isPaymentFound == null || (isPaymentFound.getLoan().getUserId() != currentUser.getId() && !loginService.hasPermission(currentUser))) {
             body.put("message", "Payment not found");
             return ApiResponse.response(false, body, HttpStatus.NOT_FOUND);
         }
 
-        Loan loan = loanService.getLoan(payment.getLoanId());
-        Double debtValue = loan.getDebtValue() + payment.getValue();
+        paymentService.deletePayment(isPaymentFound.getId());
+
+        Loan loan = loanService.getLoan(isPaymentFound.getLoanId());
+        Double debtValue = loan.getDebtValue() + isPaymentFound.getValue();
         loan.setDebtValue(debtValue);
         loan.setIsPayment(false);
         loanService.save(loan);
