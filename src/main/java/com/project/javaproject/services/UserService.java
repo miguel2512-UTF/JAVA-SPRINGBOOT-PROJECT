@@ -91,14 +91,26 @@ public class UserService implements IUserService {
     public void customQuery() {
         String query = "SELECT User.email as email,User.is_active,Role.name as name FROM User INNER JOIN Role ON User.role_id = Role.id";
         List<Object[]> result = entityManager.createNativeQuery(query, Object[].class).getResultList();
-        
         result.forEach(System.out::println);
 
+        List<Map<String, String>> resulList = new ArrayList<>();
         for(Object[] obj : result) {
+            System.out.println(obj.length);
+            Map<String, String> row = new HashMap<>();
             for(Object obj2 : obj) {
-                System.out.println(obj2);
+                if (row.get("email") == null) {
+                    row.put("email", obj2.toString());
+                } else if (row.get("is_active") == null) {
+                    row.put("is_active", obj2.toString());
+                } else if (row.get("role") == null) {
+                    row.put("role", obj2.toString());
+                }
+                System.out.println((String)obj2.toString());
             }
+            resulList.add(row);
+            System.out.println(row);
         }
+        System.out.println(resulList);
     }
 
     public boolean checkUserExist(Long id) {

@@ -1,7 +1,7 @@
 package com.project.javaproject.utils;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.project.javaproject.models.User;
 import com.project.javaproject.models.UserResponse;
@@ -31,10 +31,7 @@ public class UserMapper {
     }
 
     public static List<UserResponse> mapUsers(List<User> users) {
-        List<UserResponse> usersResponse = new ArrayList<>();
-        for (int i = 0; i < users.size(); i++) {
-            usersResponse.add(mapUser(users.get(i)));
-        }
+        List<UserResponse> usersResponse = users.stream().map(user -> mapUser(user)).collect(Collectors.toList());
 
         return usersResponse;
     }
