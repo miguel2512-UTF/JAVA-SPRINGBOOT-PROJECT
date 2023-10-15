@@ -1,6 +1,5 @@
 package com.project.javaproject.security;
 
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import com.project.javaproject.services.LoginService;
@@ -9,7 +8,6 @@ import static com.project.javaproject.utils.ApiResponse.responseUnauthorized;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@Component
 public class AuthInterceptor implements HandlerInterceptor {
 
 	private LoginService loginService;
@@ -22,9 +20,11 @@ public class AuthInterceptor implements HandlerInterceptor {
 			throws Exception {
 
 		System.out.println("Inside the Pre Handle method");
+
 		String token = loginService.getToken(request);
 
 		if (token == null) {
+			System.out.println("aaa");
 			responseUnauthorized(response, "Missing bearer token");
 			return false;
 		}

@@ -22,7 +22,8 @@ public class InterceptorsConfig implements WebMvcConfigurer {
 
     @Override
 	public void addInterceptors(InterceptorRegistry registry) {
-		registry.addInterceptor(new AuthInterceptor(loginService)).addPathPatterns(protectedRoutes);
-		registry.addInterceptor(new AdminInterceptor(loginService)).addPathPatterns(adminRoutes);
+		registry.addInterceptor(new CorsInterceptor()).order(0).addPathPatterns("/**");
+		registry.addInterceptor(new AuthInterceptor(loginService)).order(1).addPathPatterns(protectedRoutes);
+		registry.addInterceptor(new AdminInterceptor(loginService)).order(2).addPathPatterns(adminRoutes);
 	}
 }

@@ -1,7 +1,6 @@
 package com.project.javaproject.security;
 
 import java.io.IOException;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import com.project.javaproject.services.LoginService;
@@ -10,7 +9,6 @@ import static com.project.javaproject.utils.ApiResponse.responseUnauthorized;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@Component
 public class AdminInterceptor implements HandlerInterceptor {
 
     private LoginService loginService;
