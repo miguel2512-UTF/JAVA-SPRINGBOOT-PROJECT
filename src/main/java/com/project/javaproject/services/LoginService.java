@@ -10,16 +10,13 @@ import org.springframework.stereotype.Service;
 
 import com.project.javaproject.interfaces.IUserService;
 import com.project.javaproject.models.User;
-import com.project.javaproject.models.UserResponse;
 import com.project.javaproject.security.PasswordEncoder;
 import com.project.javaproject.security.PermissionsConfig;
-import com.project.javaproject.utils.UserMapper;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 
 @Service
 public class LoginService {
@@ -34,22 +31,23 @@ public class LoginService {
         return Jwts.builder()
                 .signWith(SignatureAlgorithm.HS256, KEY)
                 .claim("email", user.getEmail())
+                .claim("role", user.getRoleName())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + (TOKEN_DURATION_HOURS * 3600000)))
                 .compact();
     }
 
-    public Boolean authenticateUser(User user) {
+    public String authenticateUser(User user) {
         User isUserFound = userService.getUserByEmail(user.getEmail());
         if (isUserFound == null) {
-            return false;
+            return null;
         }
 
-        if (PasswordEncoder.match(user.getPassword(), isUserFound.getPassword())) {
-            return true;
+        if (!PasswordEncoder.match(user.getPassword(), isUserFound.getPassword())) {
+            return null;
         }
 
-        return false;
+        return generateToken(isUserFound);
     }
 
     public String validateToken(String token) {
@@ -79,21 +77,19 @@ public class LoginService {
     }
 
     public User getUserSession(HttpServletRequest request) {
-        HttpSession session = request.getSession(true);
-        String token = getToken(request).split(" ")[1];
-        String email = (String) decode(token.split("\\.")[1]).get("email");
+        String token = getToken(request).replace("Bearer ", "");
+        String email = decode(token.split("\\.")[1]).getString("email");
 
-        if (session.getAttribute("user") == null) {
-            System.out.println("Se crea la sesión");
-            session.setAttribute("user", UserMapper.mapUser(userService.getUserByEmail(email)));
-        }
-        
-        User user = UserMapper.mapUser((UserResponse) session.getAttribute("user"));
+        return userService.getUserByEmail(email);
+    }
 
-        if (!user.getEmail().equals(email)) {
-            session.setAttribute("user", UserMapper.mapUser(userService.getUserByEmail(email)));
-            user = UserMapper.mapUser((UserResponse) session.getAttribute("user"));
-        }
+    public User getUserSessionAsToken(HttpServletRequest request) {
+        String token = getToken(request).replace("Bearer ", "");
+        JSONObject payload = decode(token.split("\\.")[1]);
+
+        User user = new User();
+        user.setEmail(payload.getString("email"));
+        user.getRole().setName(payload.getString("role"));
         
         return user;
     }

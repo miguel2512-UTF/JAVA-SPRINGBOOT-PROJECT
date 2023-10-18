@@ -22,12 +22,11 @@ public class LoginController {
     @PostMapping("/login")
     public ApiResponse login(@RequestBody User user) {
         Map<String, Object> body = new HashMap<String, Object>();
-        if (!loginService.authenticateUser(user)) {
+        String token = loginService.authenticateUser(user);
+        if (token == null) {
             body.put("message", "Username or password incorrects");
             return ApiResponse.response(false, body, HttpStatus.UNAUTHORIZED);
         }
-
-        String token = loginService.generateToken(user);
         
         body.put("auth_token", token);
         return ApiResponse.response(true, body, HttpStatus.OK);
