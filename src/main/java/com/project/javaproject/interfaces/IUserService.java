@@ -12,6 +12,8 @@ public interface IUserService {
     public User getUserById(Long id);
 
     public User getUserByEmail(String email);
+    
+    public User getUser(String field, Object value, String[] select);
 
     public User save(User user);
 

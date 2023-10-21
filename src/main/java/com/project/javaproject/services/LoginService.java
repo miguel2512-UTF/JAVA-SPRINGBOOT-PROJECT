@@ -80,7 +80,7 @@ public class LoginService {
         String token = getToken(request).replace("Bearer ", "");
         String email = decode(token.split("\\.")[1]).getString("email");
 
-        return userService.getUserByEmail(email);
+        return userService.getUser("email", email, new String[] {"id","email","isActive","role"});
     }
 
     public User getUserSessionAsToken(HttpServletRequest request) {

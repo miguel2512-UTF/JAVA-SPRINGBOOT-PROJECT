@@ -43,7 +43,7 @@ public class LoanController {
         if (loginService.hasPermission(currentUser)) {
             loans = loanService.getAll();
         } else {
-            loans = loanService.getAllByUserId(currentUser);
+            loans = loanService.getAllByUser(currentUser);
         }
 
         data.put("data", loans);

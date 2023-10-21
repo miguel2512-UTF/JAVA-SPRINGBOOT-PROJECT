@@ -1,11 +1,15 @@
 package com.project.javaproject.services;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -61,6 +65,34 @@ public class UserService implements IUserService {
         return null;
     }
 
+    public User getUser(String field, Object value, String[] select) {
+        List<String> declaredFields = Arrays.asList(User.class.getDeclaredFields()).stream().map(el -> el.getName()).collect(Collectors.toList());
+
+        if (!declaredFields.contains(field) || !declaredFields.containsAll(Arrays.asList(select))) {
+            return null;
+        }
+
+        String selects = String.join(
+            ",",
+            Arrays.asList(select).stream().map(column -> "u." + column).collect(Collectors.toList())
+        );
+        String query = "SELECT " + selects + " FROM User u WHERE " + field + "=:" + field;
+        Object[] result = entityManager.createQuery(query, Object[].class).setParameter(field, value).getResultList().get(0);
+
+        User user = new User();
+        IntStream.range(0, result.length).forEach(index -> {
+            try {
+                Field col = User.class.getDeclaredField(select[index]);
+                col.setAccessible(true);
+                col.set(user, result[index]);
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        });
+
+        return user;
+    }
+
     public User save(User user) {
         user.setPassword(encode(user.getPassword()));
         User saveUser = entityManager.merge(user);
@@ -94,10 +126,10 @@ public class UserService implements IUserService {
         result.forEach(System.out::println);
 
         List<Map<String, String>> resulList = new ArrayList<>();
-        for(Object[] obj : result) {
+        for (Object[] obj : result) {
             System.out.println(obj.length);
             Map<String, String> row = new HashMap<>();
-            for(Object obj2 : obj) {
+            for (Object obj2 : obj) {
                 if (row.get("email") == null) {
                     row.put("email", obj2.toString());
                 } else if (row.get("is_active") == null) {
@@ -105,7 +137,7 @@ public class UserService implements IUserService {
                 } else if (row.get("role") == null) {
                     row.put("role", obj2.toString());
                 }
-                System.out.println((String)obj2.toString());
+                System.out.println((String) obj2.toString());
             }
             resulList.add(row);
             System.out.println(row);

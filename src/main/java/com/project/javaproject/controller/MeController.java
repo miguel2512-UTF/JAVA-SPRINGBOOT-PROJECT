@@ -38,6 +38,7 @@ public class MeController {
     public ApiResponse getMe(HttpServletRequest req) {
         Map<String, Object> body = new HashMap<String, Object>();
         User currentUser = loginService.getUserSession(req);
+        currentUser.setLoans(loanService.getAllByUser(currentUser));
         body.put("data", UserMapper.mapUser(currentUser));
 
         return ApiResponse.response(true, body, HttpStatus.OK);
@@ -92,7 +93,7 @@ public class MeController {
 
         User user = loginService.getUserSession(request);
 
-        body.put("data", loanService.getAllByUserId(user));
+        body.put("data", loanService.getAllByUser(user));
 
         return ApiResponse.response(true, body, HttpStatus.OK);
     }

@@ -36,7 +36,7 @@ public class LoanService implements ILoanService {
         return entityManager.createQuery(query, Loan.class).getResultList();
     }
 
-    public List<Loan> getAllByUserId(User user) {
+    public List<Loan> getAllByUser(User user) {
         String query = "SELECT l FROM Loan l WHERE user = :user";
         return entityManager.createQuery(query, Loan.class).setParameter("user", user).getResultList();
     }
