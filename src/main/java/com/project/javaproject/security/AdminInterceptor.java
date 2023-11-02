@@ -19,7 +19,6 @@ public class AdminInterceptor implements HandlerInterceptor {
     
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
         System.out.println("Inside The Admin Interceptor");
-        System.out.println(loginService.getUserSession(request).getRoleName());
         
         if (!loginService.hasPermission(loginService.getUserSession(request))) {
             responseUnauthorized(response, "You do not have permission to view this resource");

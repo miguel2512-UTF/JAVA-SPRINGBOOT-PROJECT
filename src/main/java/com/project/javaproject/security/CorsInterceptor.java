@@ -1,5 +1,7 @@
 package com.project.javaproject.security;
 
+import java.util.Date;
+
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,7 +11,7 @@ public class CorsInterceptor implements HandlerInterceptor {
     
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        System.out.println(request.getMethod() + " - " + request.getRequestURI());
+        System.out.println(request.getMethod() + " - " + request.getRequestURI() + " - " + new Date());
 
         System.out.println("Cors intercept");
 

@@ -24,7 +24,6 @@ public class AuthInterceptor implements HandlerInterceptor {
 		String token = loginService.getToken(request);
 
 		if (token == null) {
-			System.out.println("aaa");
 			responseUnauthorized(response, "Missing bearer token");
 			return false;
 		}
